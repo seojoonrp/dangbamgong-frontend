@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 import { Colors } from "../../../constants/colors";
 
-export default function FriendsLayout() {
+export default function MainLayout() {
   return (
     <Stack
       screenOptions={{
@@ -11,10 +11,10 @@ export default function FriendsLayout() {
     >
       <Stack.Screen name="index" />
       <Stack.Screen
-        name="search"
+        name="activity"
         options={{
           headerShown: true,
-          title: "친구 검색",
+          title: "활동 관리",
           headerStyle: { backgroundColor: Colors.black.mid },
           headerTintColor: Colors.white,
         }}
