@@ -3,12 +3,15 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import {
-  Text,
-  TextInput,
-} from "react-native";
+import { Text, TextInput } from "react-native";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { queryClient } from "../lib/queryClient";
+import { AuthProvider } from "../lib/AuthContext";
+import { setupReactQueryFocus } from "../lib/reactQueryFocus";
 
 SplashScreen.preventAutoHideAsync();
+setupReactQueryFocus();
 
 const DEFAULT_FONT = "A2Z-Regular";
 
@@ -32,7 +35,7 @@ export default function RootLayout() {
           return originalTextRender.call(
             this,
             { ...props, style: [textStyle, props.style] },
-            ref
+            ref,
           );
         };
       } else {
@@ -48,7 +51,7 @@ export default function RootLayout() {
           return originalTextInputRender.call(
             this,
             { ...props, style: [textStyle, props.style] },
-            ref
+            ref,
           );
         };
       } else {
@@ -65,13 +68,17 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <>
-      <StatusBar style="light" />
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(auth)" />
-        <Stack.Screen name="(tabs)" />
-      </Stack>
-    </>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <StatusBar style="light" />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(tabs)" />
+          </Stack>
+        </AuthProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }

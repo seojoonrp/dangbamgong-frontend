@@ -1,4 +1,11 @@
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Alert,
+  Linking,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -6,12 +13,15 @@ import { Colors } from "../../../constants/colors";
 import TabHeader from "../../../components/navigation/TabHeader";
 import SettingsIcon from "../../../../assets/icons/header/settings.svg";
 import { Layout } from "../../../constants/layout";
+import { useAuth } from "../../../lib/AuthContext";
+import { withdraw } from "../../../api/services/auth";
 
 type MenuItem = {
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
   route?: string;
   isDestructive?: boolean;
+  onPress?: () => void;
 };
 
 const accountItems: MenuItem[] = [
@@ -36,12 +46,11 @@ const accountItems: MenuItem[] = [
 const appItems: MenuItem[] = [
   { label: "앱 버전 1.0.0", icon: "information-circle" },
   { label: "서비스 이용약관", icon: "document-text" },
-  { label: "문의하기 @dangbamgong", icon: "logo-instagram" },
-];
-
-const otherItems: MenuItem[] = [
-  { label: "로그아웃", icon: "log-out", isDestructive: true },
-  { label: "회원 탈퇴", icon: "trash", isDestructive: true },
+  {
+    label: "문의하기 @dangbamgong",
+    icon: "logo-instagram",
+    onPress: () => Linking.openURL("https://instagram.com/dangbamgong"),
+  },
 ];
 
 function MenuSection({ title, items }: { title: string; items: MenuItem[] }) {
@@ -52,7 +61,10 @@ function MenuSection({ title, items }: { title: string; items: MenuItem[] }) {
         <Pressable
           key={item.label}
           style={styles.menuItem}
-          onPress={() => item.route && router.push(item.route as any)}
+          onPress={() => {
+            if (item.onPress) item.onPress();
+            else if (item.route) router.push(item.route as any);
+          }}
         >
           <Ionicons
             name={item.icon}
@@ -82,6 +94,73 @@ function MenuSection({ title, items }: { title: string; items: MenuItem[] }) {
 }
 
 export default function SettingsScreen() {
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    Alert.alert("로그아웃", "로그아웃 하시겠습니까?", [
+      { text: "취소", style: "cancel" },
+      {
+        text: "로그아웃",
+        style: "destructive",
+        onPress: async () => {
+          await logout();
+          router.replace("/(auth)/landing");
+        },
+      },
+    ]);
+  };
+
+  const handleWithdraw = () => {
+    Alert.alert(
+      "회원 탈퇴",
+      "정말 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+      [
+        { text: "취소", style: "cancel" },
+        {
+          text: "탈퇴",
+          style: "destructive",
+          onPress: () => {
+            Alert.alert(
+              "최종 확인",
+              "모든 데이터가 삭제됩니다. 계속하시겠습니까?",
+              [
+                { text: "취소", style: "cancel" },
+                {
+                  text: "탈퇴하기",
+                  style: "destructive",
+                  onPress: async () => {
+                    try {
+                      await withdraw();
+                      await logout();
+                      router.replace("/(auth)/landing");
+                    } catch {
+                      Alert.alert("오류", "탈퇴 처리에 실패했습니다.");
+                    }
+                  },
+                },
+              ],
+            );
+          },
+        },
+      ],
+    );
+  };
+
+  const otherItems: MenuItem[] = [
+    {
+      label: "로그아웃",
+      icon: "log-out",
+      isDestructive: true,
+      onPress: handleLogout,
+    },
+    {
+      label: "회원 탈퇴",
+      icon: "trash",
+      isDestructive: true,
+      onPress: handleWithdraw,
+    },
+  ];
+
   return (
     <SafeAreaView style={styles.container}>
       <TabHeader icon={SettingsIcon} title="Settings" />
@@ -105,7 +184,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: Colors.text.mid,
     fontSize: 13,
-    fontWeight: "600",
+    fontFamily: "A2Z-SemiBold",
     marginBottom: 8,
   },
   menuItem: {

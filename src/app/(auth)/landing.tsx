@@ -1,13 +1,22 @@
 import { useState } from "react";
-import { View, Text, TextInput, StyleSheet, Pressable, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  Pressable,
+  Alert,
+} from "react-native";
 import { router } from "expo-router";
 import { Colors } from "../../constants/colors";
 import { loginTest } from "../../api/services/auth";
 import { client } from "../../api/client";
+import { useAuth } from "../../lib/AuthContext";
 
 export default function LandingScreen() {
   const [loading, setLoading] = useState(false);
   const [socialId, setSocialId] = useState("test-user-1");
+  const { login } = useAuth();
 
   const handleHealthCheck = async () => {
     try {
@@ -24,8 +33,12 @@ export default function LandingScreen() {
     setLoading(true);
     try {
       const data = await loginTest(socialId.trim() || "test-user-1");
-      Alert.alert("로그인 성공", `신규 유저: ${data.isNewUser}`);
-      router.replace("/(tabs)/main");
+      login(data);
+      if (data.isNewUser) {
+        router.replace("/(auth)/nickname");
+      } else {
+        router.replace("/(tabs)/main");
+      }
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : String(e);
       Alert.alert("로그인 실패", message);
@@ -46,9 +59,7 @@ export default function LandingScreen() {
           <Text style={styles.googleButtonText}>Google로 계속하기</Text>
         </Pressable>
 
-        <Pressable
-          style={[styles.loginButton, styles.kakaoButton]}
-        >
+        <Pressable style={[styles.loginButton, styles.kakaoButton]}>
           <Text style={styles.kakaoButtonText}>카카오로 계속하기</Text>
         </Pressable>
 
