@@ -7,13 +7,13 @@ import Animated, {
   withTiming,
   Easing,
 } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Colors } from "../../constants/colors";
 
 import MainIcon from "../../../assets/icons/navigation/main.svg";
 import StatsIcon from "../../../assets/icons/navigation/stats.svg";
 import FriendsIcon from "../../../assets/icons/navigation/friends.svg";
 import SettingsIcon from "../../../assets/icons/navigation/settings.svg";
+import { Layout } from "../../constants/layout";
 
 const ICONS: Record<
   string,
@@ -26,11 +26,10 @@ const ICONS: Record<
 };
 
 const TAB_COUNT = 4;
-const TAB_BAR_H = 80;
-const TAB_BAR_PADDING_H = 16;
-const TAB_BAR_GAP = 5;
-const INDICATOR_H = 66;
-const INDICATOR_RADIUS = 19;
+const PADDING_HOR = 16;
+const TAB_GAP = 5;
+const PADDING_TOP = 10;
+const INDICATOR_HEIGHT = 66;
 const ICON_SIZE = 20;
 
 export default function CustomTabBar({
@@ -39,15 +38,14 @@ export default function CustomTabBar({
   navigation,
 }: BottomTabBarProps) {
   const { width } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
-  const tabWidth = (width - TAB_BAR_PADDING_H * 2) / TAB_COUNT;
+  const tabWidth = (width - PADDING_HOR * 2) / TAB_COUNT;
 
   const indicatorX = useSharedValue(state.index * tabWidth);
 
   useEffect(() => {
     indicatorX.value = withTiming(state.index * tabWidth, {
-      duration: 500,
-      easing: Easing.bezier(0.15, 0.1, 0.15, 1),
+      duration: 700,
+      easing: Easing.bezier(0.1, 1, 0.4, 1),
     });
   }, [state.index, tabWidth]);
 
@@ -56,17 +54,12 @@ export default function CustomTabBar({
   }));
 
   return (
-    <View
-      style={[
-        styles.container,
-        { paddingBottom: insets.bottom, height: TAB_BAR_H + insets.bottom },
-      ]}
-    >
+    <View style={[styles.container, { height: Layout.bottomTabHeight }]}>
       {/* Animated indicator */}
       <Animated.View
         style={[
           styles.indicator,
-          { width: tabWidth - TAB_BAR_GAP },
+          { width: tabWidth - TAB_GAP },
           indicatorStyle,
         ]}
       />
@@ -126,20 +119,23 @@ export default function CustomTabBar({
 
 const styles = StyleSheet.create({
   container: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
     flexDirection: "row",
+    paddingTop: PADDING_TOP,
+    paddingHorizontal: PADDING_HOR,
     backgroundColor: Colors.black.mid,
     borderTopWidth: 1,
     borderTopColor: Colors.black.light,
-    alignItems: "center",
-    position: "relative",
-    paddingHorizontal: TAB_BAR_PADDING_H,
   },
   indicator: {
     position: "absolute",
-    top: (TAB_BAR_H - INDICATOR_H) / 2,
-    left: TAB_BAR_PADDING_H + TAB_BAR_GAP / 2,
-    height: INDICATOR_H,
-    borderRadius: INDICATOR_RADIUS,
+    top: PADDING_TOP,
+    left: PADDING_HOR + TAB_GAP / 2,
+    height: INDICATOR_HEIGHT,
+    borderRadius: 19,
     backgroundColor: "rgba(17, 17, 18, 0.50)",
     borderWidth: 1,
     borderColor: Colors.white,
@@ -148,11 +144,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    height: TAB_BAR_H,
+    height: INDICATOR_HEIGHT,
     gap: 4,
   },
   label: {
     fontSize: 12,
-    fontFamily: "A2Z-Medium",
+    fontFamily: "A2Z-Regular",
   },
 });

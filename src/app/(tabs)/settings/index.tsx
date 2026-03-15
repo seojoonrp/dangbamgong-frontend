@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "../../../constants/colors";
 import TabHeader from "../../../components/shared/TabHeader";
 import SettingsIcon from "../../../../assets/icons/header/settings.svg";
+import { Layout } from "../../../constants/layout";
 
 type MenuItem = {
   label: string;
@@ -95,6 +96,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.black.dark,
+    paddingBottom: Layout.bottomTabHeight,
   },
   section: {
     marginTop: 16,

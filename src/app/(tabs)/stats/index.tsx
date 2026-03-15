@@ -3,6 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../../../constants/colors";
 import TabHeader from "../../../components/shared/TabHeader";
 import StatsIcon from "../../../../assets/icons/header/stats.svg";
+import { Layout } from "../../../constants/layout";
 
 export default function StatsScreen() {
   return (
@@ -19,6 +20,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.black.dark,
+    paddingBottom: Layout.bottomTabHeight,
   },
   content: {
     flex: 1,

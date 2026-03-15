@@ -6,6 +6,7 @@ import MainIcon from "../../../../assets/icons/header/main.svg";
 import ActivitiesIcon from "../../../../assets/icons/header/activities.svg";
 import NotificationsIcon from "../../../../assets/icons/header/notifications.svg";
 import { router } from "expo-router";
+import { Layout } from "../../../constants/layout";
 
 export default function MainScreen() {
   return (
@@ -35,6 +36,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.black.dark,
+    paddingBottom: Layout.bottomTabHeight,
   },
   content: {
     flex: 1,

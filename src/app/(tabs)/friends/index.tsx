@@ -6,6 +6,7 @@ import { useState } from "react";
 import TabHeader from "../../../components/shared/TabHeader";
 import FriendsIcon from "../../../../assets/icons/header/friends.svg";
 import PlusIcon from "../../../../assets/icons/shared/plus.svg";
+import { Layout } from "../../../constants/layout";
 
 type FriendTab = "list" | "received" | "sent";
 
@@ -67,6 +68,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.black.dark,
+    paddingBottom: Layout.bottomTabHeight,
   },
   addButton: {
     width: 64,
