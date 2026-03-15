@@ -22,20 +22,24 @@ export default function Chip({ label, selected, onPress }: Props) {
 
 const styles = StyleSheet.create({
   chip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: Colors.black.light,
-    marginRight: 8,
+    paddingHorizontal: 12,
+    height: 32,
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: Colors.white,
+    justifyContent: "center",
+    alignItems: "center",
   },
   selected: {
-    backgroundColor: Colors.point.coral,
+    borderColor: Colors.point.coral,
   },
   text: {
-    color: Colors.text.light,
-    fontSize: 14,
+    color: Colors.white,
+    fontSize: 12.5,
+    fontFamily: "A2Z-Regular",
+    marginTop: -1,
   },
   selectedText: {
-    color: Colors.white,
+    color: Colors.point.coral,
   },
 });

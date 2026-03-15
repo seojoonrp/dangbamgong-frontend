@@ -8,7 +8,7 @@ import TabHeader from "../../../components/navigation/TabHeader";
 import VoidSwipeArea from "../../../components/main/VoidSwipeArea";
 import HomeStatsBar from "../../../components/main/HomeStatsBar";
 import ActivitySelector from "../../../components/main/ActivitySelector";
-import AddActivityModal from "../../../components/main/AddActivityModal";
+import AddActivityCard from "../../../components/main/AddActivityModal";
 import NotificationDrawer from "../../../components/main/NotificationDrawer";
 import MainIcon from "../../../../assets/icons/header/main.svg";
 import ActivitiesIcon from "../../../../assets/icons/header/activities.svg";
@@ -25,7 +25,7 @@ import {
 import { useHomeStats } from "../../../hooks/useStats";
 import { useUnreadCount } from "../../../hooks/useNotifications";
 import { useVoidHistory } from "../../../hooks/useVoid";
-import { getTargetDay, formatDuration } from "../../../lib/dateUtils";
+import { getTargetDay } from "../../../lib/dateUtils";
 import type { VoidEndResponse } from "../../../types/dto/void";
 
 type VoidState = "awake" | "inVoid" | "ended";
@@ -38,9 +38,8 @@ export default function MainScreen() {
   const [selectedActivities, setSelectedActivities] = useState<Set<string>>(
     new Set(),
   );
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddCard, setShowAddCard] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [elapsedSec, setElapsedSec] = useState(0);
 
   const startVoid = useStartVoid();
   const endVoidMutation = useEndVoid();
@@ -59,18 +58,6 @@ export default function MainScreen() {
   const hasVoidHistory =
     (voidHistory?.sessions?.length ?? 0) > 0 ||
     (homeStats?.myTotalDurationSec ?? 0) > 0;
-
-  // 실시간 경과 시간 (공백 중일 때만)
-  useEffect(() => {
-    if (!isInVoid || !user?.currentVoidStartedAt) return;
-    const startTime = new Date(user.currentVoidStartedAt).getTime();
-    const update = () => {
-      setElapsedSec(Math.floor((Date.now() - startTime) / 1000));
-    };
-    update();
-    const interval = setInterval(update, 1000);
-    return () => clearInterval(interval);
-  }, [isInVoid, user?.currentVoidStartedAt]);
 
   // 공백 종료 후 awake 상태에서는 justEnded 리셋
   useEffect(() => {
@@ -98,13 +85,16 @@ export default function MainScreen() {
 
   const handleEndVoid = useCallback(() => {
     const activities = Array.from(selectedActivities);
+    setJustEnded(true);
+    setSelectedActivities(new Set());
     endVoidMutation.mutate(
       { activities },
       {
         onSuccess: (data) => {
-          setJustEnded(true);
           setEndResult(data);
-          setSelectedActivities(new Set());
+        },
+        onError: () => {
+          setJustEnded(false);
         },
       },
     );
@@ -131,7 +121,7 @@ export default function MainScreen() {
   };
 
   const renderStateImage = () => {
-    const size = 180;
+    const size = 230;
     switch (voidState) {
       case "inVoid":
         return <VoidImage width={size} height={size} />;
@@ -165,61 +155,60 @@ export default function MainScreen() {
       />
 
       <View style={styles.content}>
-        {/* 공백 중일 때 경과 시간 */}
-        {voidState === "inVoid" && (
-          <Text style={styles.elapsed}>{formatDuration(elapsedSec)}</Text>
-        )}
-
-        {/* 스와이프 영역 */}
+        {/* awake 상태 */}
         {voidState === "awake" && (
           <VoidSwipeArea direction="down" onSwipeComplete={handleStartVoid}>
             {renderStateImage()}
+            <Text style={styles.hintText}>
+              공백을 시작하려면 아래로 스와이프하세요.
+            </Text>
           </VoidSwipeArea>
         )}
 
+        {/* inVoid 상태 */}
         {voidState === "inVoid" && (
           <VoidSwipeArea direction="up" onSwipeComplete={handleEndVoid}>
             {renderStateImage()}
+            <Text style={styles.activityLabel}>공백 동안 무엇을 했나요?</Text>
+            <ActivitySelector
+              selectedIds={selectedActivities}
+              onToggle={handleToggleActivity}
+              onAddPress={() => setShowAddCard(true)}
+            />
+            <Text style={styles.hintText}>
+              공백을 끝내려면 위로 스와이프하세요.
+            </Text>
+            <Pressable style={styles.cancelButton} onPress={handleCancelVoid}>
+              <Text style={styles.cancelText}>공백 취소하기</Text>
+            </Pressable>
           </VoidSwipeArea>
         )}
 
+        {/* ended 상태 */}
         {voidState === "ended" && (
           <VoidSwipeArea direction="down" onSwipeComplete={handleStartVoid}>
             {renderStateImage()}
+            <Text style={styles.hintText}>
+              다시 공백을 시작하려면 아래로 스와이프하세요.
+            </Text>
           </VoidSwipeArea>
         )}
+      </View>
 
-        {/* 활동 선택 (공백 중일 때) */}
-        {voidState === "inVoid" && (
-          <ActivitySelector
-            selectedIds={selectedActivities}
-            onToggle={handleToggleActivity}
-            onAddPress={() => setShowAddModal(true)}
-          />
-        )}
-
-        {/* 공백 취소 버튼 (공백 중일 때) */}
-        {voidState === "inVoid" && (
-          <Pressable style={styles.cancelButton} onPress={handleCancelVoid}>
-            <Text style={styles.cancelText}>공백 취소</Text>
-          </Pressable>
-        )}
-
-        {/* 통계 바 */}
+      {/* 하단 통계 바 */}
+      <View style={styles.statsWrapper}>
         <HomeStatsBar
           voidState={voidState}
           homeStats={homeStats}
-          elapsedSec={elapsedSec}
           endResult={endResult}
           hasVoidHistory={hasVoidHistory}
         />
       </View>
 
-      {/* 활동 추가 모달 */}
-      <AddActivityModal
-        visible={showAddModal}
-        onClose={() => setShowAddModal(false)}
-      />
+      {/* 활동 추가 카드 */}
+      {showAddCard && (
+        <AddActivityCard onClose={() => setShowAddCard(false)} />
+      )}
 
       {/* 알림 Drawer */}
       <NotificationDrawer
@@ -240,24 +229,38 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    paddingBottom: 40,
   },
-  elapsed: {
+  hintText: {
     color: Colors.white,
-    fontSize: 28,
-    fontFamily: "A2Z-SemiBold",
-    marginBottom: 8,
+    fontSize: 12,
+    fontFamily: "A2Z-Light",
+    textAlign: "center",
+    marginTop: 40,
+  },
+  activityLabel: {
+    color: Colors.white,
+    fontSize: 14,
+    fontFamily: "A2Z-Regular",
+    textAlign: "center",
+    marginTop: 16,
+    marginBottom: 4,
   },
   cancelButton: {
-    marginTop: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.point.coral,
+    marginTop: 4,
+    paddingVertical: 8,
   },
   cancelText: {
-    color: Colors.point.coral,
+    color: Colors.text.mid,
     fontSize: 14,
+    fontFamily: "A2Z-Regular",
+    textAlign: "center",
+  },
+  statsWrapper: {
+    position: "absolute",
+    bottom: Layout.bottomTabHeight,
+    left: 0,
+    right: 0,
   },
   unreadDot: {
     position: "absolute",

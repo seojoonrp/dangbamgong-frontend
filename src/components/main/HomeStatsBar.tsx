@@ -9,7 +9,6 @@ type VoidState = "awake" | "inVoid" | "ended";
 interface Props {
   voidState: VoidState;
   homeStats?: HomeStatResponse;
-  elapsedSec?: number;
   endResult?: VoidEndResponse | null;
   hasVoidHistory: boolean;
 }
@@ -17,7 +16,6 @@ interface Props {
 export default function HomeStatsBar({
   voidState,
   homeStats,
-  elapsedSec = 0,
   endResult,
   hasVoidHistory,
 }: Props) {
@@ -68,7 +66,8 @@ export default function HomeStatsBar({
           지금 {homeStats?.currentVoidCount ?? 0}명의 사람들이 공백 중이에요.
         </Text>
         <Text style={styles.statSub}>
-          {homeStats?.todaySleptCount ?? 0}명의 사람들은 공백을 끝내고 잠에
+          {homeStats?.todaySleptCount ?? 0}명의 사람
+          {homeStats?.todaySleptCount === 1 ? "은" : "들은"} 공백을 끝내고 잠에
           들었어요.
         </Text>
       </>
@@ -80,19 +79,18 @@ export default function HomeStatsBar({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 40,
   },
   stat: {
     color: Colors.white,
-    fontSize: 15,
-    textAlign: "center",
+    fontSize: 14,
+    fontFamily: "A2Z-Regular",
     marginBottom: 4,
   },
   statSub: {
     color: Colors.text.light,
-    fontSize: 13,
-    textAlign: "center",
+    fontSize: 14,
+    fontFamily: "A2Z-Regular",
   },
 });

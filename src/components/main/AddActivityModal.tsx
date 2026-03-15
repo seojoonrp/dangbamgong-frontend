@@ -1,22 +1,22 @@
 import { useState } from "react";
 import {
-  Modal,
   View,
   Text,
   TextInput,
   Pressable,
   StyleSheet,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Colors } from "../../constants/colors";
 import { useCreateActivity, useActivities } from "../../hooks/useActivities";
 
 interface Props {
-  visible: boolean;
   onClose: () => void;
 }
 
-export default function AddActivityModal({ visible, onClose }: Props) {
+export default function AddActivityCard({ onClose }: Props) {
   const [name, setName] = useState("");
   const [touched, setTouched] = useState(false);
   const { data } = useActivities();
@@ -38,25 +38,18 @@ export default function AddActivityModal({ visible, onClose }: Props) {
     } catch {}
   };
 
-  const handleClose = () => {
-    setName("");
-    setTouched(false);
-    onClose();
-  };
-
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={handleClose}
-    >
-      <Pressable style={styles.backdrop} onPress={handleClose}>
-        <View style={styles.container} onStartShouldSetResponder={() => true}>
-          <Text style={styles.title}>활동 추가</Text>
+    <View style={styles.overlay}>
+      <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.keyboardView}
+      >
+        <View style={styles.card}>
+          <Text style={styles.title}>추가할 활동의 이름을 입력해주세요.</Text>
           <TextInput
             style={[styles.input, showError && styles.inputError]}
-            placeholder="활동 이름 입력..."
+            placeholder="1~10자로 입력해주세요..."
             placeholderTextColor={Colors.text.mid}
             value={name}
             onChangeText={setName}
@@ -71,10 +64,7 @@ export default function AddActivityModal({ visible, onClose }: Props) {
                 : "활동 이름은 1~10자여야 합니다."}
             </Text>
           )}
-          <View style={styles.buttons}>
-            <Pressable style={styles.cancelBtn} onPress={handleClose}>
-              <Text style={styles.cancelText}>취소</Text>
-            </Pressable>
+          <View style={styles.buttonRow}>
             <Pressable
               style={[
                 styles.submitBtn,
@@ -86,41 +76,52 @@ export default function AddActivityModal({ visible, onClose }: Props) {
               {createMutation.isPending ? (
                 <ActivityIndicator color={Colors.white} size="small" />
               ) : (
-                <Text style={styles.submitText}>추가</Text>
+                <Text style={styles.submitText}>추가하기</Text>
               )}
             </Pressable>
           </View>
         </View>
-      </Pressable>
-    </Modal>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 10,
+    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
   },
-  container: {
-    width: "85%",
+  keyboardView: {
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  card: {
     backgroundColor: Colors.black.mid,
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 20,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    width: "80%",
+    borderColor: Colors.white,
+    borderWidth: 1,
   },
   title: {
     color: Colors.white,
-    fontSize: 18,
-    fontFamily: "A2Z-SemiBold",
-    marginBottom: 20,
+    fontSize: 14,
+    fontFamily: "A2Z-Medium",
+    marginBottom: 12,
+    marginTop: 4,
   },
   input: {
-    height: 44,
+    height: 40,
     borderBottomWidth: 1,
     borderBottomColor: Colors.text.dark,
     color: Colors.white,
-    fontSize: 15,
+    fontSize: 14,
+    fontFamily: "A2Z-Regular",
     marginBottom: 8,
   },
   inputError: {
@@ -128,35 +129,28 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: Colors.point.coral,
-    fontSize: 12,
+    fontSize: 11,
+    fontFamily: "A2Z-Regular",
     marginBottom: 8,
   },
-  buttons: {
+  buttonRow: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    gap: 12,
-    marginTop: 16,
-  },
-  cancelBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-  cancelText: {
-    color: Colors.text.light,
-    fontSize: 14,
+    marginTop: 8,
   },
   submitBtn: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 14,
     paddingVertical: 10,
-    backgroundColor: Colors.point.coral,
-    borderRadius: 8,
+    borderRadius: 16,
+    borderColor: Colors.white,
+    borderWidth: 1,
   },
   btnDisabled: {
-    backgroundColor: Colors.black.light,
+    opacity: 0.2,
   },
   submitText: {
     color: Colors.white,
-    fontSize: 14,
-    fontFamily: "A2Z-SemiBold",
+    fontSize: 13,
+    fontFamily: "A2Z-Regular",
   },
 });

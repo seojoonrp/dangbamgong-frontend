@@ -1,16 +1,9 @@
 import React from "react";
-import { StyleSheet, Text, Dimensions } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  runOnJS,
-} from "react-native-reanimated";
-import { Colors } from "../../constants/colors";
+import { useSharedValue, runOnJS } from "react-native-reanimated";
 
-const THRESHOLD = 120;
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+const THRESHOLD = 60;
 
 interface Props {
   direction: "down" | "up";
@@ -23,19 +16,20 @@ export default function VoidSwipeArea({
   onSwipeComplete,
   children,
 }: Props) {
-  const translateY = useSharedValue(0);
   const isTriggered = useSharedValue(false);
 
   const pan = Gesture.Pan()
+    .activeOffsetY([-15, 15])
     .onUpdate((event) => {
-      if (direction === "down") {
-        translateY.value = Math.max(0, Math.min(event.translationY, 200));
-      } else {
-        translateY.value = Math.min(0, Math.max(event.translationY, -200));
-      }
+      const translation = event.translationY;
+      const isCorrectDirection =
+        direction === "down" ? translation > 0 : translation < 0;
 
-      const distance = Math.abs(translateY.value);
-      if (distance >= THRESHOLD && !isTriggered.value) {
+      if (
+        isCorrectDirection &&
+        Math.abs(translation) >= THRESHOLD &&
+        !isTriggered.value
+      ) {
         isTriggered.value = true;
       }
     })
@@ -43,31 +37,12 @@ export default function VoidSwipeArea({
       if (isTriggered.value) {
         runOnJS(onSwipeComplete)();
       }
-      translateY.value = withSpring(0, { damping: 20, stiffness: 200 });
       isTriggered.value = false;
     });
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
-
-  const hintStyle = useAnimatedStyle(() => {
-    const progress = Math.min(Math.abs(translateY.value) / THRESHOLD, 1);
-    return { opacity: 0.3 + progress * 0.7 };
-  });
-
   return (
     <GestureDetector gesture={pan}>
-      <Animated.View style={[styles.container, animatedStyle]}>
-        {children}
-        <Animated.View style={[styles.hintContainer, hintStyle]}>
-          <Text style={styles.hintText}>
-            {direction === "down"
-              ? "아래로 스와이프하여 공백 시작"
-              : "위로 스와이프하여 공백 종료"}
-          </Text>
-        </Animated.View>
-      </Animated.View>
+      <View style={styles.container}>{children}</View>
     </GestureDetector>
   );
 }
@@ -75,16 +50,8 @@ export default function VoidSwipeArea({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: "100%",
     justifyContent: "center",
     alignItems: "center",
-  },
-  hintContainer: {
-    position: "absolute",
-    bottom: 40,
-    alignItems: "center",
-  },
-  hintText: {
-    color: Colors.text.light,
-    fontSize: 13,
   },
 });

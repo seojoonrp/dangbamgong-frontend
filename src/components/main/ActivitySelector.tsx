@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { View, ScrollView, StyleSheet, Pressable, Text } from "react-native";
+import { View, StyleSheet, Pressable, Text } from "react-native";
 import { Colors } from "../../constants/colors";
 import Chip from "../shared/Chip";
+import PlusIcon from "../../../assets/icons/shared/plus.svg";
 import { useActivities } from "../../hooks/useActivities";
-import type { ActivityItem } from "../../types/dto/activities";
+import { ScrollView } from "react-native-gesture-handler";
 
 interface Props {
   selectedIds: Set<string>;
@@ -27,9 +27,11 @@ export default function ActivitySelector({
   return (
     <View style={styles.container}>
       <ScrollView
+        style={styles.wrapContent}
         horizontal
-        showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        showsHorizontalScrollIndicator={false}
+        decelerationRate={0.9}
       >
         {sorted.map((activity) => (
           <Chip
@@ -39,27 +41,39 @@ export default function ActivitySelector({
             onPress={() => onToggle(activity.name)}
           />
         ))}
-        <Pressable style={styles.addButton} onPress={onAddPress}>
-          <Text style={styles.addText}>+</Text>
-        </Pressable>
       </ScrollView>
+      <Pressable style={styles.addButton} onPress={onAddPress}>
+        <PlusIcon width={14} height={14} color={Colors.white} />
+      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 12,
+    paddingTop: 12,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    gap: 6,
+    alignItems: "center",
+  },
+  wrapContent: {
+    maxWidth: "60%",
+    flexDirection: "row",
+    overflow: "hidden",
   },
   scrollContent: {
-    paddingHorizontal: 20,
+    flexDirection: "row",
+    gap: 6,
     alignItems: "center",
   },
   addButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 15,
     backgroundColor: Colors.black.light,
+    borderColor: Colors.white,
+    borderWidth: 1,
     justifyContent: "center",
     alignItems: "center",
   },
