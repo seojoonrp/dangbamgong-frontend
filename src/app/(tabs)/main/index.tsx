@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../../../constants/colors";
-import TabHeader from "../../../components/shared/TabHeader";
+import TabHeader from "../../../components/navigation/TabHeader";
 import MainIcon from "../../../../assets/icons/header/main.svg";
 import ActivitiesIcon from "../../../../assets/icons/header/activities.svg";
 import NotificationsIcon from "../../../../assets/icons/header/notifications.svg";

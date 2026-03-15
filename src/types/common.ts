@@ -1,0 +1,39 @@
+export type ErrorCode =
+  | "BAD_REQUEST"
+  | "NOT_FOUND"
+  | "INTERNAL_SERVER_ERROR"
+  | "UNAUTHORIZED"
+  | "FORBIDDEN"
+  | "CONFLICT"
+  | "SERVICE_UNAVAILABLE"
+  | "INVALID_TOKEN"
+  | "INVALID_NICKNAME"
+  | "NICKNAME_ALREADY_SET"
+  | "USER_NOT_FOUND"
+  | "ALREADY_BLOCKED"
+  | "NOT_BLOCKED"
+  | "ALREADY_IN_VOID"
+  | "NOT_IN_VOID"
+  | "TOO_MANY_ACTIVITIES"
+  | "INVALID_ACTIVITY_NAME"
+  | "ACTIVITY_ALREADY_EXISTS"
+  | "ACTIVITY_NOT_FOUND"
+  | "NOTIFICATION_NOT_FOUND"
+  | "ALREADY_FRIENDS"
+  | "REQUEST_ALREADY_SENT"
+  | "BLOCKED"
+  | "REQUEST_NOT_FOUND"
+  | "REQUEST_NOT_PENDING"
+  | "NOT_FRIENDS"
+  | "FRIEND_NOT_IN_VOID"
+  | "INVALID_REQUEST_TYPE";
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+}
+
+export interface ErrorResponse {
+  success: false;
+  code: ErrorCode;
+}

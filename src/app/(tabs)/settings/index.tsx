@@ -3,7 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "../../../constants/colors";
-import TabHeader from "../../../components/shared/TabHeader";
+import TabHeader from "../../../components/navigation/TabHeader";
 import SettingsIcon from "../../../../assets/icons/header/settings.svg";
 import { Layout } from "../../../constants/layout";
 

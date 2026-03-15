@@ -3,7 +3,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Colors } from "../../../constants/colors";
 import { useState } from "react";
-import TabHeader from "../../../components/shared/TabHeader";
+import TabHeader from "../../../components/navigation/TabHeader";
 import FriendsIcon from "../../../../assets/icons/header/friends.svg";
 import PlusIcon from "../../../../assets/icons/shared/plus.svg";
 import { Layout } from "../../../constants/layout";

@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../../../constants/colors";
-import ScreenHeader from "../../../components/shared/ScreenHeader";
+import ScreenHeader from "../../../components/navigation/ScreenHeader";
 
 export default function ProfileScreen() {
   return (

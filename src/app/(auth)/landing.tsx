@@ -1,11 +1,37 @@
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { useState } from "react";
+import { View, Text, TextInput, StyleSheet, Pressable, Alert } from "react-native";
 import { router } from "expo-router";
 import { Colors } from "../../constants/colors";
+import { loginTest } from "../../api/services/auth";
+import { client } from "../../api/client";
 
 export default function LandingScreen() {
-  const handleTestLogin = () => {
-    // TODO: 테스트 로그인 API 연동
-    router.replace("/(tabs)/main");
+  const [loading, setLoading] = useState(false);
+  const [socialId, setSocialId] = useState("test-user-1");
+
+  const handleHealthCheck = async () => {
+    try {
+      const res = await client.get("/health");
+      Alert.alert("Health Check", `서버 응답 OK\n${JSON.stringify(res)}`);
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      Alert.alert("Health Check 실패", message);
+    }
+  };
+
+  const handleTestLogin = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const data = await loginTest(socialId.trim() || "test-user-1");
+      Alert.alert("로그인 성공", `신규 유저: ${data.isNewUser}`);
+      router.replace("/(tabs)/main");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : String(e);
+      Alert.alert("로그인 실패", message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -30,8 +56,24 @@ export default function LandingScreen() {
           <Text style={styles.appleButtonText}>Apple로 계속하기</Text>
         </Pressable>
 
+        <TextInput
+          style={styles.socialIdInput}
+          value={socialId}
+          onChangeText={setSocialId}
+          placeholder="소셜 ID 입력"
+          placeholderTextColor={Colors.text.dark}
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
+
         <Pressable style={styles.testButton} onPress={handleTestLogin}>
-          <Text style={styles.testButtonText}>테스트 로그인</Text>
+          <Text style={styles.testButtonText}>
+            {loading ? "로그인 중..." : "테스트 로그인"}
+          </Text>
+        </Pressable>
+
+        <Pressable style={styles.testButton} onPress={handleHealthCheck}>
+          <Text style={styles.testButtonText}>서버 Health Check</Text>
         </Pressable>
       </View>
 
@@ -102,6 +144,17 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: 15,
     fontWeight: "600",
+  },
+  socialIdInput: {
+    width: "100%",
+    height: 48,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.text.dark,
+    borderStyle: "dashed",
+    paddingHorizontal: 16,
+    color: Colors.white,
+    fontSize: 14,
   },
   testButton: {
     width: "100%",

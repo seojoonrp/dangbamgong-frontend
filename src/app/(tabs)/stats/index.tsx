@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../../../constants/colors";
-import TabHeader from "../../../components/shared/TabHeader";
+import TabHeader from "../../../components/navigation/TabHeader";
 import StatsIcon from "../../../../assets/icons/header/stats.svg";
 import { Layout } from "../../../constants/layout";
 
