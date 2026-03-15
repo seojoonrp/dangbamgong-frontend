@@ -1,9 +1,12 @@
 import { View, Text, TextInput, StyleSheet } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../../../constants/colors";
+import ScreenHeader from "../../../components/shared/ScreenHeader";
 
 export default function FriendSearchScreen() {
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <ScreenHeader title="친구 추가" />
       <TextInput
         style={styles.searchInput}
         placeholder="태그로 친구를 검색하세요..."
@@ -15,7 +18,7 @@ export default function FriendSearchScreen() {
       <View style={styles.content}>
         <Text style={styles.placeholder}>검색 결과 영역</Text>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

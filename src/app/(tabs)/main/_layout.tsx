@@ -13,10 +13,8 @@ export default function MainLayout() {
       <Stack.Screen
         name="activity"
         options={{
-          headerShown: true,
+          headerShown: false,
           title: "활동 관리",
-          headerStyle: { backgroundColor: Colors.black.mid },
-          headerTintColor: Colors.white,
         }}
       />
     </Stack>

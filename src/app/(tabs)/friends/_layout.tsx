@@ -13,10 +13,8 @@ export default function FriendsLayout() {
       <Stack.Screen
         name="search"
         options={{
-          headerShown: true,
-          title: "친구 검색",
-          headerStyle: { backgroundColor: Colors.black.mid },
-          headerTintColor: Colors.white,
+          headerShown: false,
+          title: "친구 추가",
         }}
       />
     </Stack>

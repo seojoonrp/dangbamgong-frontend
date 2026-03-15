@@ -3,12 +3,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../../../constants/colors";
 import ScreenHeader from "../../../components/shared/ScreenHeader";
 
-export default function ProfileScreen() {
+export default function StatDetailScreen() {
   return (
     <SafeAreaView style={styles.container}>
-      <ScreenHeader title="프로필" />
+      <ScreenHeader title="세부 공백 통계" />
       <View style={styles.content}>
-        <Text style={styles.placeholder}>프로필 (닉네임, 태그, 가입 경로)</Text>
+        <Text style={styles.placeholder}>세부 공백 통계</Text>
       </View>
     </SafeAreaView>
   );

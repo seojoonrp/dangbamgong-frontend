@@ -1,9 +1,11 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "../../../constants/colors";
 import { useState } from "react";
+import TabHeader from "../../../components/shared/TabHeader";
+import FriendsIcon from "../../../../assets/icons/header/friends.svg";
+import PlusIcon from "../../../../assets/icons/shared/plus.svg";
 
 type FriendTab = "list" | "received" | "sent";
 
@@ -12,15 +14,18 @@ export default function FriendsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>친구</Text>
-        <Pressable
-          style={styles.addButton}
-          onPress={() => router.push("/(tabs)/friends/search")}
-        >
-          <Ionicons name="add" size={24} color={Colors.white} />
-        </Pressable>
-      </View>
+      <TabHeader
+        icon={FriendsIcon}
+        title="Friends"
+        rightContent={
+          <Pressable
+            onPress={() => router.push("/(tabs)/friends/search")}
+            style={styles.addButton}
+          >
+            <PlusIcon width={16} height={16} color={Colors.white} />
+          </Pressable>
+        }
+      />
 
       <View style={styles.tabs}>
         {(
@@ -63,21 +68,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.black.dark,
   },
-  header: {
-    flexDirection: "row",
+  addButton: {
+    width: 64,
+    height: 32,
+    borderRadius: 14,
+    backgroundColor: Colors.text.dark,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: Colors.white,
-  },
-  addButton: {
-    position: "absolute",
-    right: 16,
+    borderColor: Colors.white,
+    borderWidth: 1,
+    marginRight: 6,
   },
   tabs: {
     flexDirection: "row",

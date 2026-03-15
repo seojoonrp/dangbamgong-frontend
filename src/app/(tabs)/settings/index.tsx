@@ -3,6 +3,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "../../../constants/colors";
+import TabHeader from "../../../components/shared/TabHeader";
+import SettingsIcon from "../../../../assets/icons/header/settings.svg";
 
 type MenuItem = {
   label: string;
@@ -23,7 +25,11 @@ const accountItems: MenuItem[] = [
     icon: "ban",
     route: "/(tabs)/settings/block",
   },
-  { label: "세부 통계 보기", icon: "analytics" },
+  {
+    label: "세부 공백 통계",
+    icon: "analytics",
+    route: "/(tabs)/settings/detail",
+  },
 ];
 
 const appItems: MenuItem[] = [
@@ -37,13 +43,7 @@ const otherItems: MenuItem[] = [
   { label: "회원 탈퇴", icon: "trash", isDestructive: true },
 ];
 
-function MenuSection({
-  title,
-  items,
-}: {
-  title: string;
-  items: MenuItem[];
-}) {
+function MenuSection({ title, items }: { title: string; items: MenuItem[] }) {
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -83,7 +83,7 @@ function MenuSection({
 export default function SettingsScreen() {
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>설정</Text>
+      <TabHeader icon={SettingsIcon} title="Settings" />
       <MenuSection title="계정 정보" items={accountItems} />
       <MenuSection title="앱 정보" items={appItems} />
       <MenuSection title="기타" items={otherItems} />
@@ -95,13 +95,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.black.dark,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: Colors.white,
-    textAlign: "center",
-    paddingVertical: 12,
   },
   section: {
     marginTop: 16,

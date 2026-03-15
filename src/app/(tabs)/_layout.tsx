@@ -1,11 +1,11 @@
 import { Tabs } from "expo-router";
 
-import CustomTabBar from "../../components/navigation/CustomTabBar";
+import BottomTab from "../../components/navigation/BottomTab";
 
 export default function TabsLayout() {
   return (
     <Tabs
-      tabBar={(props) => <CustomTabBar {...props} />}
+      tabBar={(props) => <BottomTab {...props} />}
       screenOptions={{
         headerShown: false,
       }}
