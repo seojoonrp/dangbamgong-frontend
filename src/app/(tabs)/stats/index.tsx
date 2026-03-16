@@ -12,9 +12,11 @@ import StatsIcon from "../../../../assets/icons/header/stats.svg";
 import { useDailyStats } from "../../../hooks/useStats";
 import { useVoidHistory } from "../../../hooks/useVoid";
 import { getTargetDay } from "../../../lib/dateUtils";
+import { MOCK_DAILY_STATS, MOCK_VOID_HISTORY } from "../../../lib/mockStats";
 import LoadingView from "../../../components/shared/LoadingView";
 
-const MIN_DATE = "2025-01-01"; // 앱 출시일
+const MIN_DATE = "2026-03-20"; // 앱 출시일
+const USE_MOCK = true; // TODO: 실제 데이터가 충분해지면 false로 변경
 
 export default function StatsScreen() {
   const [currentDay, setCurrentDay] = useState(getTargetDay());
@@ -24,7 +26,10 @@ export default function StatsScreen() {
     useVoidHistory(currentDay);
 
   const isToday = currentDay === getTargetDay();
-  const isLoading = dailyLoading || historyLoading;
+  const isLoading = !USE_MOCK && (dailyLoading || historyLoading);
+
+  const stats = USE_MOCK ? MOCK_DAILY_STATS : dailyStats;
+  const history = USE_MOCK ? MOCK_VOID_HISTORY : voidHistory;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -40,14 +45,11 @@ export default function StatsScreen() {
         <LoadingView />
       ) : (
         <View style={styles.content}>
-          {/* 히스토그램 */}
-          <Histogram buckets={dailyStats?.buckets ?? []} isToday={isToday} />
+          <Histogram buckets={stats?.buckets ?? []} isToday={isToday} />
 
-          {/* 통계 텍스트 */}
-          <StatsText dailyStats={dailyStats} voidHistory={voidHistory} />
+          <Timetable sessions={stats?.mySessions ?? []} />
 
-          {/* 시간표 */}
-          <Timetable sessions={dailyStats?.mySessions ?? []} />
+          <StatsText dailyStats={stats} voidHistory={history} />
         </View>
       )}
     </SafeAreaView>

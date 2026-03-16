@@ -71,9 +71,8 @@ export function addDays(dateStr: string, days: number): string {
  */
 export function formatDisplayDate(dateStr: string): string {
   const d = new Date(dateStr + "T12:00:00");
-  const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
+  const year = d.getFullYear();
   const month = d.getMonth() + 1;
   const day = d.getDate();
-  const weekday = weekdays[d.getDay()];
-  return `${month}월 ${day}일 (${weekday})`;
+  return `${year}년 ${month}월 ${day}일`;
 }

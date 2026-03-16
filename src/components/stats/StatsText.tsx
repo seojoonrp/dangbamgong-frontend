@@ -26,6 +26,10 @@ export default function StatsText({ dailyStats, voidHistory }: Props) {
       <Text style={styles.main}>
         총 공백 {formatDuration(totalSec)}
       </Text>
+      <Text style={styles.sub}>
+        잠에 든 209명 중{" "}
+        <Text style={styles.highlight}>103번째로 긴 공백</Text>을 보냈어요.
+      </Text>
     </View>
   );
 }
@@ -38,7 +42,16 @@ const styles = StyleSheet.create({
   },
   main: {
     color: Colors.white,
-    fontSize: 15,
+    fontSize: 16,
+    fontFamily: "A2Z-Bold",
+  },
+  sub: {
+    color: Colors.text.light,
+    fontSize: 13,
+    marginTop: 6,
+  },
+  highlight: {
+    color: Colors.point.coral,
     fontFamily: "A2Z-SemiBold",
   },
   empty: {

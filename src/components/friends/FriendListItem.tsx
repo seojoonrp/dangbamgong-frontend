@@ -8,6 +8,7 @@ import { useBlockUser } from "../../hooks/useUser";
 import { useNudgeCooldown } from "../../hooks/useNudgeCooldown";
 import { ApiError } from "../../api/client";
 import type { FriendItem } from "../../types/dto/friends";
+import SendIcon from "../../../assets/icons/shared/send.svg";
 
 interface Props {
   friend: FriendItem;
@@ -112,32 +113,40 @@ export default function FriendListItem({
       <View style={styles.container}>
         <View style={styles.info}>
           <Text style={styles.nickname}>{friend.nickname}</Text>
-          <Text style={styles.status}>
-            {friend.isInVoid
-              ? "공백 중"
-              : `마지막 공백: ${formatRelativeTime(friend.lastVoidEndedAt)}`}
-          </Text>
+          <View style={styles.statusRow}>
+            <View
+              style={[
+                styles.statusDot,
+                friend.isInVoid
+                  ? styles.statusDotActive
+                  : styles.statusDotInactive,
+              ]}
+            />
+            <Text style={styles.status}>
+              {friend.isInVoid
+                ? "공백 중"
+                : `마지막 공백: ${formatRelativeTime(friend.lastVoidEndedAt)}`}
+            </Text>
+          </View>
         </View>
 
         {friend.isInVoid && (
           <Pressable
-            style={[
-              styles.nudgeBtn,
-              !nudgeAvailable && styles.nudgeBtnDisabled,
-            ]}
+            style={styles.nudgeBtn}
             onPress={handleNudge}
             disabled={!nudgeAvailable || nudgeMutation.isPending}
           >
-            <Text
-              style={[
-                styles.nudgeText,
-                !nudgeAvailable && styles.nudgeTextDisabled,
-              ]}
-            >
-              {nudgeAvailable
-                ? "알림"
-                : formatNudgeTime(remainingSec)}
-            </Text>
+            {nudgeAvailable ? (
+              <SendIcon
+                width={24}
+                height={24}
+                color={Colors.text.light}
+              />
+            ) : (
+              <Text style={styles.nudgeTextDisabled}>
+                {formatNudgeTime(remainingSec)}
+              </Text>
+            )}
           </Pressable>
         )}
       </View>
@@ -149,47 +158,62 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
+    paddingVertical: 20,
     paddingHorizontal: 20,
-    backgroundColor: Colors.black.dark,
-    borderBottomWidth: 0.5,
-    borderBottomColor: Colors.black.light,
+    backgroundColor: Colors.black.mid,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.black.light,
+    marginHorizontal: 16,
   },
   info: {
     flex: 1,
   },
   nickname: {
     color: Colors.white,
-    fontSize: 15,
-    marginBottom: 2,
+    fontSize: 24,
+    fontFamily: "A2Z-Bold",
+    marginBottom: 4,
+  },
+  statusRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  statusDotActive: {
+    backgroundColor: Colors.white,
+  },
+  statusDotInactive: {
+    backgroundColor: Colors.text.mid,
   },
   status: {
-    color: Colors.text.mid,
-    fontSize: 12,
+    color: Colors.text.light,
+    fontSize: 13,
   },
   nudgeBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 6,
-    backgroundColor: Colors.point.coral,
-  },
-  nudgeBtnDisabled: {
-    backgroundColor: Colors.black.light,
-  },
-  nudgeText: {
-    color: Colors.white,
-    fontSize: 13,
+    width: 48,
+    height: 48,
+    justifyContent: "center",
+    alignItems: "center",
   },
   nudgeTextDisabled: {
     color: Colors.text.mid,
+    fontSize: 12,
   },
   swipeActions: {
     flexDirection: "row",
+    alignItems: "center",
   },
   swipeBtn: {
     justifyContent: "center",
     alignItems: "center",
     width: 70,
+    height: "100%",
   },
   deleteBtn: {
     backgroundColor: Colors.text.dark,
@@ -200,5 +224,6 @@ const styles = StyleSheet.create({
   swipeBtnText: {
     color: Colors.white,
     fontSize: 13,
+    fontFamily: "A2Z-SemiBold",
   },
 });

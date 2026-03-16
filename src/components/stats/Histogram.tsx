@@ -47,6 +47,9 @@ export default function Histogram({ buckets, isToday }: Props) {
     return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
   };
 
+  // NOW 인디케이터의 X 위치 (픽셀)
+  const nowX = isToday ? currentBucketIndex * BAR_TOTAL + BAR_WIDTH / 2 : -1;
+
   return (
     <View style={styles.container}>
       <ScrollView
@@ -82,6 +85,24 @@ export default function Histogram({ buckets, isToday }: Props) {
             </View>
           )}
 
+          {/* NOW 인디케이터 */}
+          {isToday && nowX > 0 && (
+            <>
+              <Text style={[styles.nowLabel, { left: nowX - 16 }]}>NOW</Text>
+              <View style={[styles.nowLine, { left: nowX, height: MAX_BAR_HEIGHT + 4 }]}>
+                {Array.from({ length: Math.ceil((MAX_BAR_HEIGHT + 4) / 6) }, (_, i) => (
+                  <View
+                    key={i}
+                    style={[
+                      styles.nowDash,
+                      i % 2 === 0 ? styles.nowDashVisible : styles.nowDashGap,
+                    ]}
+                  />
+                ))}
+              </View>
+            </>
+          )}
+
           {/* 막대들 */}
           <View style={styles.barsRow}>
             {buckets.map((bucket, i) => {
@@ -106,7 +127,7 @@ export default function Histogram({ buckets, isToday }: Props) {
                         height,
                         backgroundColor: bucket.isMine
                           ? Colors.point.coral
-                          : Colors.black.light,
+                          : Colors.white,
                       },
                     ]}
                   />
@@ -125,7 +146,7 @@ export default function Histogram({ buckets, isToday }: Props) {
                   { left: i * 6 * BAR_TOTAL - 10 },
                 ]}
               >
-                {(16 + i) % 24}
+                {String((16 + i) % 24).padStart(2, "0")}
               </Text>
             ))}
           </View>
@@ -186,6 +207,30 @@ const styles = StyleSheet.create({
   tooltipText: {
     color: Colors.white,
     fontSize: 11,
+  },
+  nowLabel: {
+    position: "absolute",
+    top: -20,
+    color: Colors.point.coral,
+    fontSize: 10,
+    fontFamily: "A2Z-SemiBold",
+    zIndex: 10,
+  },
+  nowLine: {
+    position: "absolute",
+    top: 0,
+    width: 1,
+    zIndex: 5,
+  },
+  nowDash: {
+    width: 1,
+    height: 3,
+  },
+  nowDashVisible: {
+    backgroundColor: Colors.point.coral,
+  },
+  nowDashGap: {
+    backgroundColor: "transparent",
   },
   xAxis: {
     position: "relative",

@@ -65,6 +65,8 @@ export default function FriendsScreen() {
                 onForceRefresh={handleForceRefresh}
               />
             )}
+            contentContainerStyle={styles.listContent}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
             ListEmptyComponent={
               <Text style={styles.emptyText}>
                 아직 친구가 없어요. 친구를 추가해보세요!
@@ -145,14 +147,19 @@ export default function FriendsScreen() {
             style={[styles.tab, activeTab === tab.key && styles.activeTab]}
             onPress={() => setActiveTab(tab.key)}
           >
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === tab.key && styles.activeTabText,
-              ]}
-            >
-              {tab.label}
-            </Text>
+            <View style={styles.tabLabelRow}>
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === tab.key && styles.activeTabText,
+                ]}
+              >
+                {tab.label}
+              </Text>
+              {tab.key === "received" && receivedRequests.length > 0 && (
+                <View style={styles.tabDot} />
+              )}
+            </View>
           </Pressable>
         ))}
       </View>
@@ -198,7 +205,12 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: Colors.point.coral,
+    borderBottomColor: Colors.white,
+  },
+  tabLabelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
   },
   tabText: {
     color: Colors.text.mid,
@@ -208,6 +220,13 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontFamily: "A2Z-SemiBold",
   },
+  tabDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.point.coral,
+    marginBottom: 8,
+  },
   content: {
     flex: 1,
   },
@@ -216,6 +235,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     paddingHorizontal: 20,
     paddingVertical: 10,
+  },
+  listContent: {
+    paddingBottom: 16,
+  },
+  separator: {
+    height: 10,
   },
   emptyText: {
     color: Colors.text.mid,
