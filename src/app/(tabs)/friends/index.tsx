@@ -90,6 +90,8 @@ export default function FriendsScreen() {
             renderItem={({ item }) => (
               <ReceivedRequestItem request={item} onError={handleError} />
             )}
+            contentContainerStyle={styles.listContent}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
             ListEmptyComponent={
               <Text style={styles.emptyText}>받은 요청이 없습니다.</Text>
             }
@@ -111,6 +113,8 @@ export default function FriendsScreen() {
           renderItem={({ item }: { item: any }) => (
             <SentRequestItem request={item} />
           )}
+          contentContainerStyle={styles.listContent}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
           ListEmptyComponent={
             <Text style={styles.emptyText}>보낸 요청이 없습니다.</Text>
           }
@@ -129,7 +133,7 @@ export default function FriendsScreen() {
             onPress={() => router.push("/(tabs)/friends/search")}
             style={styles.addButton}
           >
-            <PlusIcon width={16} height={16} color={Colors.white} />
+            <PlusIcon width={12} height={12} color={Colors.white} />
           </Pressable>
         }
       />
@@ -144,7 +148,7 @@ export default function FriendsScreen() {
         ).map((tab) => (
           <Pressable
             key={tab.key}
-            style={[styles.tab, activeTab === tab.key && styles.activeTab]}
+            style={styles.tab}
             onPress={() => setActiveTab(tab.key)}
           >
             <View style={styles.tabLabelRow}>
@@ -156,10 +160,11 @@ export default function FriendsScreen() {
               >
                 {tab.label}
               </Text>
-              {tab.key === "received" && receivedRequests.length > 0 && (
-                <View style={styles.tabDot} />
-              )}
+              {tab.key === "received" &&
+                receivedRequests.length > 0 &&
+                activeTab !== "received" && <View style={styles.tabDot} />}
             </View>
+            {activeTab === tab.key && <View style={styles.tabIndicator} />}
           </Pressable>
         ))}
       </View>
@@ -184,8 +189,8 @@ const styles = StyleSheet.create({
   },
   addButton: {
     width: 64,
-    height: 32,
-    borderRadius: 14,
+    height: 28,
+    borderRadius: 12,
     backgroundColor: Colors.text.dark,
     justifyContent: "center",
     alignItems: "center",
@@ -197,15 +202,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: Colors.black.light,
+    paddingHorizontal: 8,
   },
   tab: {
     flex: 1,
-    paddingVertical: 12,
+    height: 40,
     alignItems: "center",
-  },
-  activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: Colors.white,
+    justifyContent: "center",
+    overflow: "hidden",
   },
   tabLabelRow: {
     flexDirection: "row",
@@ -213,28 +217,38 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   tabText: {
-    color: Colors.text.mid,
+    color: Colors.disabled,
     fontSize: 14,
+    fontFamily: "A2Z-Regular",
   },
   activeTabText: {
     color: Colors.white,
-    fontFamily: "A2Z-SemiBold",
   },
   tabDot: {
-    width: 6,
-    height: 6,
+    width: 4,
+    height: 4,
     borderRadius: 3,
-    backgroundColor: Colors.point.coral,
+    backgroundColor: Colors.white,
     marginBottom: 8,
+  },
+  tabIndicator: {
+    position: "absolute",
+    bottom: -13.6,
+    width: 96,
+    height: 16,
+    borderRadius: 12,
+    backgroundColor: Colors.white,
   },
   content: {
     flex: 1,
   },
   countText: {
-    color: Colors.text.light,
-    fontSize: 13,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    color: Colors.white,
+    fontSize: 12,
+    fontFamily: "A2Z-Regular",
+    paddingHorizontal: 17,
+    paddingTop: 14,
+    paddingBottom: 10,
   },
   listContent: {
     paddingBottom: 16,

@@ -1,4 +1,6 @@
-import { View, Text, Pressable, StyleSheet, ActivityIndicator } from "react-native";
+import { useRef } from "react";
+import { View, Text, Pressable, StyleSheet, Alert } from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
 import { Colors } from "../../constants/colors";
 import { formatRelativeTime } from "../../lib/dateUtils";
 import {
@@ -14,105 +16,138 @@ interface Props {
 }
 
 export default function ReceivedRequestItem({ request, onError }: Props) {
+  const swipeableRef = useRef<Swipeable>(null);
   const acceptMutation = useAcceptFriendRequest();
   const rejectMutation = useRejectFriendRequest();
   const blockMutation = useBlockUser();
 
-  const isPending =
-    acceptMutation.isPending ||
-    rejectMutation.isPending ||
-    blockMutation.isPending;
+  const handleAccept = () => {
+    acceptMutation.mutate(request.requestId);
+  };
+
+  const handleReject = () => {
+    swipeableRef.current?.close();
+    rejectMutation.mutate(request.requestId);
+  };
+
+  const handleBlock = () => {
+    swipeableRef.current?.close();
+    Alert.alert("차단", `${request.sender.nickname}님을 차단하시겠습니까?`, [
+      { text: "취소", style: "cancel" },
+      {
+        text: "차단",
+        style: "destructive",
+        onPress: () => blockMutation.mutate(request.sender.userId),
+      },
+    ]);
+  };
+
+  const renderRightActions = () => (
+    <View style={styles.swipeActions}>
+      <Pressable style={[styles.swipeBtn, styles.rejectBtn]} onPress={handleReject}>
+        <Text style={styles.swipeBtnText}>거절</Text>
+      </Pressable>
+      <Pressable style={[styles.swipeBtn, styles.blockBtn]} onPress={handleBlock}>
+        <Text style={styles.swipeBtnText}>차단</Text>
+      </Pressable>
+    </View>
+  );
 
   return (
-    <View style={styles.container}>
-      <View style={styles.info}>
-        <Text style={styles.nickname}>{request.sender.nickname}</Text>
-        <Text style={styles.tag}>@{request.sender.tag}</Text>
-        <Text style={styles.time}>
-          {formatRelativeTime(request.createdAt)}
-        </Text>
-      </View>
-
-      {isPending ? (
-        <ActivityIndicator color={Colors.white} size="small" />
-      ) : (
-        <View style={styles.actions}>
-          <Pressable
-            style={[styles.actionBtn, styles.acceptBtn]}
-            onPress={() => acceptMutation.mutate(request.requestId)}
-          >
-            <Text style={styles.actionText}>수락</Text>
-          </Pressable>
-          <Pressable
-            style={[styles.actionBtn, styles.rejectBtn]}
-            onPress={() => rejectMutation.mutate(request.requestId)}
-          >
-            <Text style={styles.actionText}>거절</Text>
-          </Pressable>
-          <Pressable
-            style={[styles.actionBtn, styles.blockActionBtn]}
-            onPress={() => blockMutation.mutate(request.sender.userId)}
-          >
-            <Text style={styles.blockText}>차단</Text>
-          </Pressable>
+    <Swipeable ref={swipeableRef} renderRightActions={renderRightActions} overshootRight={false}>
+      <View style={styles.container}>
+        <View style={styles.info}>
+          <Text style={styles.nickname}>{request.sender.nickname}</Text>
+          <View style={styles.subRow}>
+            <Text style={styles.time}>
+              {formatRelativeTime(request.createdAt)}
+            </Text>
+            <Text style={styles.tag}>#{request.sender.tag}</Text>
+          </View>
         </View>
-      )}
-    </View>
+        <Pressable
+          style={styles.acceptBtn}
+          onPress={handleAccept}
+          disabled={acceptMutation.isPending}
+        >
+          <Text style={styles.acceptText}>수락</Text>
+        </Pressable>
+      </View>
+    </Swipeable>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    height: 85,
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderBottomWidth: 0.5,
-    borderBottomColor: Colors.black.light,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: Colors.text.dark,
+    backgroundColor: "rgba(22, 22, 24, 0.5)",
+    paddingLeft: 26,
+    marginHorizontal: 8,
   },
   info: {
     flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    flexWrap: "wrap",
+    justifyContent: "center",
   },
   nickname: {
     color: Colors.white,
-    fontSize: 15,
+    fontSize: 22,
+    fontFamily: "A2Z-Medium",
+    marginBottom: 4,
+  },
+  subRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  time: {
+    color: Colors.point.coral,
+    fontSize: 10,
+    fontFamily: "A2Z-Regular",
   },
   tag: {
     color: Colors.text.mid,
-    fontSize: 13,
-  },
-  time: {
-    color: Colors.text.dark,
-    fontSize: 11,
-  },
-  actions: {
-    flexDirection: "row",
-    gap: 6,
-  },
-  actionBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 6,
+    fontSize: 10,
+    fontFamily: "A2Z-Regular",
   },
   acceptBtn: {
-    backgroundColor: Colors.point.coral,
+    width: 87,
+    height: 85,
+    borderTopLeftRadius: 36,
+    borderBottomLeftRadius: 36,
+    backgroundColor: Colors.black.light,
+    borderWidth: 1,
+    borderColor: Colors.text.dark,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  acceptText: {
+    color: Colors.white,
+    fontSize: 16,
+    fontFamily: "A2Z-Regular",
+  },
+  swipeActions: {
+    flexDirection: "row",
+    alignItems: "stretch",
+  },
+  swipeBtn: {
+    justifyContent: "center",
+    alignItems: "center",
+    width: 72,
   },
   rejectBtn: {
-    backgroundColor: Colors.black.light,
+    backgroundColor: Colors.point.coral,
   },
-  blockActionBtn: {
-    backgroundColor: "transparent",
+  blockBtn: {
+    backgroundColor: Colors.point.strong,
   },
-  actionText: {
+  swipeBtnText: {
     color: Colors.white,
-    fontSize: 12,
-  },
-  blockText: {
-    color: Colors.point.coral,
-    fontSize: 12,
+    fontSize: 16,
+    fontFamily: "A2Z-Regular",
   },
 });
