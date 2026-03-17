@@ -4,11 +4,10 @@ import {
   StyleSheet,
   Pressable,
   Alert,
-  Linking,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "../../../constants/colors";
 import TabHeader from "../../../components/navigation/TabHeader";
 import SettingsIcon from "../../../../assets/icons/header/settings.svg";
@@ -16,79 +15,115 @@ import { Layout } from "../../../constants/layout";
 import { useAuth } from "../../../lib/AuthContext";
 import { withdraw } from "../../../api/services/auth";
 
+import ProfileIcon from "../../../../assets/icons/settings/profile.svg";
+import PushIcon from "../../../../assets/icons/settings/push.svg";
+import BlockIcon from "../../../../assets/icons/settings/block.svg";
+import StatDetailIcon from "../../../../assets/icons/settings/stat-detail.svg";
+import VersionIcon from "../../../../assets/icons/settings/version.svg";
+import TermsIcon from "../../../../assets/icons/settings/terms.svg";
+import CallIcon from "../../../../assets/icons/settings/call.svg";
+import LogoutIcon from "../../../../assets/icons/settings/logout.svg";
+import WithdrawIcon from "../../../../assets/icons/settings/withdraw.svg";
+import ChevronIcon from "../../../../assets/icons/shared/chevron.svg";
+import InstaIcon from "../../../../assets/icons/settings/instagram.svg";
+
+type SvgIcon = React.FC<{ color: string; width: number; height: number }>;
+
 type MenuItem = {
   label: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: SvgIcon;
   route?: string;
   isDestructive?: boolean;
   onPress?: () => void;
+  rightIcon?: SvgIcon;
+  rightText?: string;
 };
 
 const accountItems: MenuItem[] = [
-  { label: "프로필", icon: "person", route: "/(tabs)/settings/profile" },
-  {
-    label: "푸시 알림 설정",
-    icon: "notifications",
-    route: "/(tabs)/settings/push",
-  },
-  {
-    label: "차단 목록",
-    icon: "ban",
-    route: "/(tabs)/settings/block",
-  },
+  { label: "프로필", icon: ProfileIcon, route: "/(tabs)/settings/profile" },
+  { label: "푸시 알림 설정", icon: PushIcon, route: "/(tabs)/settings/push" },
+  { label: "차단 목록", icon: BlockIcon, route: "/(tabs)/settings/block" },
   {
     label: "세부 공백 통계",
-    icon: "analytics",
+    icon: StatDetailIcon,
     route: "/(tabs)/settings/detail",
   },
 ];
 
 const appItems: MenuItem[] = [
-  { label: "앱 버전 1.0.0", icon: "information-circle" },
-  { label: "서비스 이용약관", icon: "document-text" },
+  { label: "앱 버전", icon: VersionIcon, rightText: "v1.0.0" },
   {
-    label: "문의하기 @dangbamgong",
-    icon: "logo-instagram",
-    onPress: () => Linking.openURL("https://instagram.com/dangbamgong"),
+    label: "서비스 이용 약관",
+    icon: TermsIcon,
+    onPress: () => {
+      // TODO: 실제 약관 페이지 웹뷰 띄우면 좋을듯~
+      Alert.alert("서비스 이용 약관", "서비스이용약관임");
+    },
+  },
+  {
+    label: "문의하기",
+    icon: CallIcon,
+    rightIcon: InstaIcon,
+    rightText: "dangbamgong_official",
   },
 ];
 
-function MenuSection({ title, items }: { title: string; items: MenuItem[] }) {
+type SectionConfig = {
+  title: string;
+  items: MenuItem[];
+  indicatorColor: string;
+};
+
+function MenuSection({ title, items, indicatorColor }: SectionConfig) {
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
-      {items.map((item) => (
-        <Pressable
-          key={item.label}
-          style={styles.menuItem}
-          onPress={() => {
-            if (item.onPress) item.onPress();
-            else if (item.route) router.push(item.route as any);
-          }}
-        >
-          <Ionicons
-            name={item.icon}
-            size={20}
-            color={item.isDestructive ? Colors.point.coral : Colors.text.light}
-          />
-          <Text
-            style={[
-              styles.menuLabel,
-              item.isDestructive && styles.destructiveLabel,
-            ]}
+      <View style={styles.itemsContainer}>
+        <View
+          style={[styles.sideIndicator, { backgroundColor: indicatorColor }]}
+        />
+        {items.map((item, index) => (
+          <Pressable
+            key={item.label}
+            style={styles.menuItem}
+            onPress={() => {
+              if (item.onPress) item.onPress();
+              else if (item.route) router.push(item.route as any);
+            }}
           >
-            {item.label}
-          </Text>
-          {item.route && (
-            <Ionicons
-              name="chevron-forward"
-              size={18}
-              color={Colors.text.dark}
-              style={styles.chevron}
-            />
-          )}
-        </Pressable>
-      ))}
+            <View style={styles.iconContainer}>
+              <item.icon
+                width={16}
+                height={16}
+                color={item.isDestructive ? Colors.point.coral : Colors.white}
+              />
+            </View>
+            <Text
+              style={[
+                styles.menuLabel,
+                item.isDestructive && styles.destructiveLabel,
+              ]}
+            >
+              {item.label}
+            </Text>
+            {item.rightIcon && (
+              <item.rightIcon
+                width={14}
+                height={14}
+                color={Colors.text.light}
+              />
+            )}
+            {item.rightText && (
+              <Text style={styles.rightText}>{item.rightText}</Text>
+            )}
+            {(item.route || item.onPress) && !item.rightText && (
+              <View style={{ transform: [{ rotate: "180deg" }] }}>
+                <ChevronIcon width={12} height={12} color={Colors.text.light} />
+              </View>
+            )}
+          </Pressable>
+        ))}
+      </View>
     </View>
   );
 }
@@ -149,24 +184,48 @@ export default function SettingsScreen() {
   const otherItems: MenuItem[] = [
     {
       label: "로그아웃",
-      icon: "log-out",
+      icon: LogoutIcon,
       isDestructive: true,
       onPress: handleLogout,
     },
     {
       label: "회원 탈퇴",
-      icon: "trash",
+      icon: WithdrawIcon,
       isDestructive: true,
       onPress: handleWithdraw,
+    },
+  ];
+
+  const sections: SectionConfig[] = [
+    {
+      title: "계정 정보",
+      items: accountItems,
+      indicatorColor: Colors.white,
+    },
+    {
+      title: "앱 정보",
+      items: appItems,
+      indicatorColor: Colors.white,
+    },
+    {
+      title: "기타",
+      items: otherItems,
+      indicatorColor: Colors.point.coral,
     },
   ];
 
   return (
     <SafeAreaView style={styles.container}>
       <TabHeader icon={SettingsIcon} title="Settings" />
-      <MenuSection title="계정 정보" items={accountItems} />
-      <MenuSection title="앱 정보" items={appItems} />
-      <MenuSection title="기타" items={otherItems} />
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {sections.map((section) => (
+          <MenuSection key={section.title} {...section} />
+        ))}
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -175,33 +234,66 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.black.dark,
-    paddingBottom: Layout.bottomTabHeight,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 24,
   },
   section: {
     marginTop: 16,
-    paddingHorizontal: 16,
   },
   sectionTitle: {
-    color: Colors.text.mid,
-    fontSize: 13,
-    fontFamily: "A2Z-SemiBold",
+    color: "rgba(250, 250, 250, 0.4)",
+    fontSize: 12,
+    fontFamily: "A2Z-Regular",
     marginBottom: 8,
+    paddingLeft: 24,
+  },
+  itemsContainer: {
+    paddingLeft: 12,
+    gap: 3.2,
+  },
+  sideIndicator: {
+    position: "absolute",
+    left: -20,
+    top: 0,
+    bottom: 0,
+    width: 22.2,
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
   },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
-    gap: 12,
+    height: 48,
+    backgroundColor: "rgba(41, 40, 45, 0.7)",
+    paddingLeft: 18,
+    paddingRight: 18,
+    borderTopLeftRadius: 20,
+    borderBottomLeftRadius: 20,
+  },
+  iconContainer: {
+    width: 16,
+    height: 16,
+    alignItems: "center",
+    justifyContent: "center",
   },
   menuLabel: {
     color: Colors.white,
-    fontSize: 15,
+    fontSize: 12.5,
+    fontFamily: "A2Z-Regular",
     flex: 1,
+    marginLeft: 8,
   },
   destructiveLabel: {
     color: Colors.point.coral,
   },
-  chevron: {
-    marginLeft: "auto",
+  rightText: {
+    color: Colors.text.light,
+    fontSize: 12,
+    fontFamily: "A2Z-Regular",
+    marginLeft: 2,
   },
 });
