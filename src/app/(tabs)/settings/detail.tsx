@@ -6,6 +6,9 @@ import { useMyStats } from "../../../hooks/useStats";
 import { formatDuration } from "../../../lib/dateUtils";
 import LoadingView from "../../../components/shared/LoadingView";
 
+// TODO: 가장 긴 공백 날짜 받아오기
+const LONGEST_VOID_DATE = "2026.03.07";
+
 export default function StatDetailScreen() {
   const { data, isLoading } = useMyStats();
 
@@ -16,25 +19,24 @@ export default function StatDetailScreen() {
       <ScreenHeader title="세부 공백 통계" />
 
       <View style={styles.content}>
-        <View style={styles.statCard}>
-          <Text style={styles.statLabel}>총 공백 시간</Text>
-          <Text style={styles.statValue}>
+        <View style={styles.row}>
+          <Text style={styles.label}>총 공백 시간</Text>
+          <Text style={styles.value}>
             {formatDuration(data?.totalDurationSec ?? 0)}
           </Text>
         </View>
 
-        <View style={styles.statCard}>
-          <Text style={styles.statLabel}>평균 공백 시간</Text>
-          <Text style={styles.statValue}>
+        <View style={styles.row}>
+          <Text style={styles.label}>평균 공백 시간</Text>
+          <Text style={styles.value}>
             {formatDuration(data?.averageDurationSec ?? 0)}
           </Text>
-          <Text style={styles.statSub}>총 공백 시간 / 공백 보낸 일수</Text>
         </View>
 
-        <View style={styles.statCard}>
-          <Text style={styles.statLabel}>가장 긴 공백</Text>
-          <Text style={styles.statValue}>
-            {formatDuration(data?.maxDurationSec ?? 0)}
+        <View style={styles.row}>
+          <Text style={styles.label}>가장 긴 공백</Text>
+          <Text style={styles.value}>
+            {formatDuration(data?.maxDurationSec ?? 0)} ({LONGEST_VOID_DATE})
           </Text>
         </View>
       </View>
@@ -49,27 +51,22 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 20,
-    paddingTop: 20,
-    gap: 16,
+    paddingTop: 12,
   },
-  statCard: {
-    backgroundColor: Colors.black.mid,
-    borderRadius: 12,
-    padding: 20,
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 16,
   },
-  statLabel: {
-    color: Colors.text.mid,
-    fontSize: 13,
-    marginBottom: 8,
-  },
-  statValue: {
+  label: {
     color: Colors.white,
-    fontSize: 24,
-    fontFamily: "A2Z-SemiBold",
+    fontSize: 14,
+    fontFamily: "A2Z-Medium",
   },
-  statSub: {
-    color: Colors.text.dark,
-    fontSize: 11,
-    marginTop: 4,
+  value: {
+    color: "rgba(250, 250, 250, 0.9)",
+    fontSize: 13,
+    fontFamily: "A2Z-Regular",
   },
 });

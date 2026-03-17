@@ -13,6 +13,7 @@ export const Colors = {
     light: "#9999A0",
     mid: "#5D5D64",
     dark: "#484850",
+    black: "#29282D",
   },
   disabled: "#7F7F84",
   brand: {

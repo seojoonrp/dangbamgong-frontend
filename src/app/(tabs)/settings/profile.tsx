@@ -13,6 +13,7 @@ import { Colors } from "../../../constants/colors";
 import ScreenHeader from "../../../components/navigation/ScreenHeader";
 import { useMe, useChangeNickname } from "../../../hooks/useUser";
 import LoadingView from "../../../components/shared/LoadingView";
+import EditIcon from "../../../../assets/icons/shared/edit.svg";
 
 export default function ProfileScreen() {
   const { data: user, isLoading } = useMe();
@@ -48,13 +49,14 @@ export default function ProfileScreen() {
         <View style={styles.row}>
           <Text style={styles.label}>닉네임</Text>
           {editing ? (
-            <View style={styles.editRow}>
+            <View style={styles.editInputRow}>
               <TextInput
-                style={[styles.input, !isValid && styles.inputError]}
+                style={styles.input}
                 value={nickname}
                 onChangeText={setNickname}
                 maxLength={15}
                 autoFocus
+                placeholderTextColor={Colors.text.dark}
               />
               <Pressable
                 style={[
@@ -75,8 +77,8 @@ export default function ProfileScreen() {
           ) : (
             <View style={styles.valueRow}>
               <Text style={styles.value}>{user.nickname}</Text>
-              <Pressable onPress={startEdit}>
-                <Text style={styles.editText}>변경</Text>
+              <Pressable onPress={startEdit} style={styles.editBtn}>
+                <EditIcon width={10} height={10} color={Colors.white} />
               </Pressable>
             </View>
           )}
@@ -85,14 +87,16 @@ export default function ProfileScreen() {
         {/* 태그 */}
         <View style={styles.row}>
           <Text style={styles.label}>태그</Text>
-          <Text style={styles.value}>@{user.tag}</Text>
+          <Text style={[styles.value, styles.valueTracking]}>#{user.tag}</Text>
         </View>
 
         {/* ID */}
         <View style={styles.row}>
           <Text style={styles.label}>ID</Text>
-          <Text style={styles.valueMuted}>{user.id}</Text>
+          <Text style={styles.value}>{user.id}</Text>
         </View>
+
+        {/* TODO: 이메일, 가입 경로 추가 */}
       </View>
     </SafeAreaView>
   );
@@ -104,57 +108,65 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.black.dark,
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 31,
     paddingTop: 20,
   },
   row: {
-    paddingVertical: 16,
-    borderBottomWidth: 0.5,
-    borderBottomColor: Colors.black.light,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    height: 47,
   },
   label: {
-    color: Colors.text.mid,
-    fontSize: 13,
-    marginBottom: 6,
+    color: Colors.white,
+    fontSize: 14,
+    fontFamily: "A2Z-Medium",
   },
   value: {
-    color: Colors.white,
-    fontSize: 16,
+    color: "rgba(250, 250, 250, 0.9)",
+    fontSize: 13,
+    fontFamily: "A2Z-Regular",
   },
-  valueMuted: {
-    color: Colors.text.light,
-    fontSize: 14,
+  valueTracking: {
+    letterSpacing: 0.65,
   },
   valueRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    gap: 7,
   },
-  editText: {
-    color: Colors.point.coral,
-    fontSize: 14,
+  editBtn: {
+    width: 32,
+    height: 20,
+    borderRadius: 99,
+    backgroundColor: Colors.black.light,
+    borderWidth: 1,
+    borderColor: Colors.white,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  editRow: {
+  editInputRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
+    flex: 1,
+    marginLeft: 20,
   },
   input: {
     flex: 1,
-    height: 40,
+    height: 36,
     borderBottomWidth: 1,
     borderBottomColor: Colors.text.dark,
     color: Colors.white,
-    fontSize: 16,
+    fontSize: 13,
+    fontFamily: "A2Z-Regular",
     paddingVertical: 0,
-  },
-  inputError: {
-    borderBottomColor: Colors.point.coral,
+    textAlign: "right",
   },
   saveBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 99,
     backgroundColor: Colors.point.coral,
   },
   saveBtnDisabled: {
@@ -162,6 +174,7 @@ const styles = StyleSheet.create({
   },
   saveBtnText: {
     color: Colors.white,
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: "A2Z-Regular",
   },
 });
