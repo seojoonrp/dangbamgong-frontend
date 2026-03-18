@@ -7,26 +7,23 @@ import {
   Pressable,
   Alert,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Colors } from "../../constants/colors";
 import { loginTest } from "../../api/services/auth";
-import { client } from "../../api/client";
 import { useAuth } from "../../lib/AuthContext";
+import VoidImage from "../../../assets/images/void.svg";
+import GoogleIcon from "../../../assets/icons/brand/google.svg";
+import KakaoIcon from "../../../assets/icons/brand/kakao.svg";
+import AppleIcon from "../../../assets/icons/brand/apple.svg";
+
+const COMING_SOON_TITLE = "준비 중";
+const COMING_SOON_MSG = "아직 구현되지 않은 기능입니다.";
 
 export default function LandingScreen() {
   const [loading, setLoading] = useState(false);
   const [socialId, setSocialId] = useState("test-user-1");
   const { login } = useAuth();
-
-  const handleHealthCheck = async () => {
-    try {
-      const res = await client.get("/health");
-      Alert.alert("Health Check", `서버 응답 OK\n${JSON.stringify(res)}`);
-    } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : String(e);
-      Alert.alert("Health Check 실패", message);
-    }
-  };
 
   const handleTestLogin = async () => {
     if (loading) return;
@@ -47,51 +44,84 @@ export default function LandingScreen() {
     }
   };
 
+  const handleComingSoon = () => {
+    Alert.alert(COMING_SOON_TITLE, COMING_SOON_MSG);
+  };
+
   return (
-    <View style={styles.container}>
-      <View style={styles.logoArea}>
-        <Text style={styles.logo}>당밤공</Text>
-        <Text style={styles.subtitle}>밤의 공백 시간 측정</Text>
-      </View>
-
-      <View style={styles.buttonArea}>
-        <Pressable style={[styles.loginButton, styles.googleButton]}>
-          <Text style={styles.googleButtonText}>Google로 계속하기</Text>
-        </Pressable>
-
-        <Pressable style={[styles.loginButton, styles.kakaoButton]}>
-          <Text style={styles.kakaoButtonText}>카카오로 계속하기</Text>
-        </Pressable>
-
-        <Pressable style={[styles.loginButton, styles.appleButton]}>
-          <Text style={styles.appleButtonText}>Apple로 계속하기</Text>
-        </Pressable>
-
+    <SafeAreaView style={styles.container}>
+      {/* 테스트 로그인 - 좌상단 absolute */}
+      <View style={styles.testArea}>
         <TextInput
-          style={styles.socialIdInput}
+          style={styles.testInput}
           value={socialId}
           onChangeText={setSocialId}
-          placeholder="소셜 ID 입력"
+          placeholder="소셜 ID"
           placeholderTextColor={Colors.text.dark}
           autoCapitalize="none"
           autoCorrect={false}
         />
-
         <Pressable style={styles.testButton} onPress={handleTestLogin}>
           <Text style={styles.testButtonText}>
-            {loading ? "로그인 중..." : "테스트 로그인"}
+            {loading ? "..." : "테스트"}
           </Text>
-        </Pressable>
-
-        <Pressable style={styles.testButton} onPress={handleHealthCheck}>
-          <Text style={styles.testButtonText}>서버 Health Check</Text>
         </Pressable>
       </View>
 
-      <Text style={styles.terms}>
-        로그인하면 서비스 이용약관 및 개인정보 처리방침에 동의하게 됩니다
-      </Text>
-    </View>
+      {/* 콘텐츠 + 버튼 영역 (세로 가운데) */}
+      <View style={styles.centerArea}>
+        <View style={styles.content}>
+          <VoidImage width={230} height={131} />
+          <Text style={styles.title}>당밤공</Text>
+          <Text style={styles.subtitle}>
+            <Text style={styles.boldText}>당</Text>
+            <Text>신은 매일 </Text>
+            <Text style={styles.boldText}>밤</Text>
+            <Text> 얼마나 긴 </Text>
+            <Text style={styles.boldText}>공</Text>
+            <Text>백을 보냅니까?</Text>
+          </Text>
+        </View>
+
+        {/* 소셜 로그인 버튼 */}
+        <View style={styles.buttonArea}>
+          <Pressable
+            style={[styles.loginButton, styles.googleButton]}
+            onPress={handleComingSoon}
+          >
+            <GoogleIcon width={24} height={24} />
+            <Text style={styles.googleButtonText}>Google로 로그인</Text>
+          </Pressable>
+
+          <Pressable
+            style={[styles.loginButton, styles.kakaoButton]}
+            onPress={handleComingSoon}
+          >
+            <KakaoIcon width={21} height={21} />
+            <Text style={styles.kakaoButtonText}>카카오로 로그인</Text>
+          </Pressable>
+
+          <Pressable
+            style={[styles.loginButton, styles.appleButton]}
+            onPress={handleComingSoon}
+          >
+            <AppleIcon width={24} height={24} />
+            <Text style={styles.appleButtonText}>Apple로 로그인</Text>
+          </Pressable>
+        </View>
+      </View>
+
+      {/* 이용약관 */}
+      <Pressable onPress={handleComingSoon}>
+        <Text style={styles.terms}>
+          <Text>로그인하면 </Text>
+          <Text style={styles.termsLink}>서비스 이용약관</Text>
+          <Text> 및{"\n"}</Text>
+          <Text style={styles.termsLink}>개인정보 처리방침</Text>
+          <Text>에 동의하게 됩니다.</Text>
+        </Text>
+      </Pressable>
+    </SafeAreaView>
   );
 }
 
@@ -99,92 +129,127 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.black.dark,
+  },
+  testArea: {
+    position: "absolute",
+    top: 60,
+    left: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    zIndex: 10,
+    opacity: 0.6,
+  },
+  testInput: {
+    width: 160,
+    height: 48,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.text.dark,
+    borderStyle: "dashed",
+    paddingHorizontal: 12,
+    color: Colors.white,
+    fontSize: 13,
+  },
+  testButton: {
+    height: 48,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.text.dark,
+    borderStyle: "dashed",
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 32,
   },
-  logoArea: {
+  testButtonText: {
+    color: Colors.text.light,
+    fontSize: 13,
+  },
+  centerArea: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-  logo: {
-    fontSize: 40,
-    fontWeight: "bold",
+  content: {
+    alignItems: "center",
+    marginBottom: 72,
+    marginTop: 28,
+  },
+  title: {
+    fontSize: 30,
+    fontFamily: "A2Z-SemiBold",
     color: Colors.white,
+    marginTop: 24,
   },
   subtitle: {
-    fontSize: 14,
-    color: Colors.text.light,
-    marginTop: 8,
+    fontSize: 12,
+    fontFamily: "A2Z-Regular",
+    color: Colors.text.dark,
+    textAlign: "center",
+    marginTop: 10,
+  },
+  boldText: {
+    fontFamily: "A2Z-Bold",
   },
   buttonArea: {
-    width: "100%",
+    alignItems: "center",
     gap: 12,
-    marginBottom: 24,
   },
   loginButton: {
-    width: "100%",
+    width: 241,
     height: 48,
-    borderRadius: 8,
-    justifyContent: "center",
+    borderRadius: 16,
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    borderWidth: 1,
+    borderColor: Colors.white,
   },
   googleButton: {
-    backgroundColor: Colors.white,
+    backgroundColor: "#FFFFFF",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.17,
+    shadowRadius: 3,
+    elevation: 3,
   },
   googleButtonText: {
-    color: "#000",
-    fontSize: 15,
-    fontWeight: "600",
+    fontSize: 14,
+    fontFamily: "A2Z-Regular",
+    color: "rgba(0,0,0,0.54)",
   },
   kakaoButton: {
     backgroundColor: Colors.brand.kakao,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.17,
+    shadowRadius: 3,
+    elevation: 3,
   },
   kakaoButtonText: {
-    color: "#000",
-    fontSize: 15,
-    fontWeight: "600",
+    fontSize: 14,
+    fontFamily: "A2Z-Regular",
+    color: "#000000",
   },
   appleButton: {
-    backgroundColor: "#000",
-    borderWidth: 1,
-    borderColor: Colors.text.dark,
+    backgroundColor: "#000000",
   },
   appleButtonText: {
-    color: Colors.white,
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  socialIdInput: {
-    width: "100%",
-    height: 48,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.text.dark,
-    borderStyle: "dashed",
-    paddingHorizontal: 16,
-    color: Colors.white,
     fontSize: 14,
-  },
-  testButton: {
-    width: "100%",
-    height: 48,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: Colors.text.dark,
-    borderStyle: "dashed",
-  },
-  testButtonText: {
-    color: Colors.text.light,
-    fontSize: 14,
+    fontFamily: "A2Z-Regular",
+    color: "#FFFFFF",
   },
   terms: {
-    color: Colors.text.mid,
-    fontSize: 11,
+    fontSize: 10,
+    fontFamily: "A2Z-Regular",
+    color: Colors.text.dark,
     textAlign: "center",
-    marginBottom: 48,
+    marginBottom: 32,
+    lineHeight: 16,
+  },
+  termsLink: {
+    fontFamily: "A2Z-SemiBold",
+    textDecorationLine: "underline" as const,
   },
 });

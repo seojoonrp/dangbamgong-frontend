@@ -124,11 +124,11 @@ export default function MainScreen() {
     const size = 230;
     switch (voidState) {
       case "inVoid":
-        return <VoidImage width={size} height={size} />;
+        return <VoidImage width={size} height={size} color={Colors.white} />;
       case "ended":
-        return <SleepImage width={size} height={size} />;
+        return <SleepImage width={size} height={size} color={Colors.white} />;
       default:
-        return <AwakeImage width={size} height={size} />;
+        return <AwakeImage width={size} height={size} color={Colors.white} />;
     }
   };
 
@@ -206,9 +206,7 @@ export default function MainScreen() {
       </View>
 
       {/* 활동 추가 카드 */}
-      {showAddCard && (
-        <AddActivityCard onClose={() => setShowAddCard(false)} />
-      )}
+      {showAddCard && <AddActivityCard onClose={() => setShowAddCard(false)} />}
 
       {/* 알림 Drawer */}
       <NotificationDrawer
