@@ -246,15 +246,15 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: 12,
     fontFamily: "A2Z-Regular",
-    paddingHorizontal: 17,
+    paddingHorizontal: 20,
     paddingTop: 14,
-    paddingBottom: 10,
+    paddingBottom: 11,
   },
   listContent: {
     paddingBottom: 16,
   },
   separator: {
-    height: 10,
+    height: 11,
   },
   emptyText: {
     color: Colors.text.mid,

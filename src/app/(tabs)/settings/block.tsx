@@ -5,11 +5,13 @@ import ScreenHeader from "../../../components/navigation/ScreenHeader";
 import { useBlockList, useUnblockUser } from "../../../hooks/useUser";
 import { formatRelativeTime } from "../../../lib/dateUtils";
 import LoadingView from "../../../components/shared/LoadingView";
+import { SwipeableCard } from "../../../components/friends/SwipeableCard";
 import type { BlockItem } from "../../../types/dto/users";
 
 export default function BlockListScreen() {
   const { data, isLoading } = useBlockList();
   const unblockMutation = useUnblockUser();
+  const blocks = data?.blocks ?? [];
 
   const handleUnblock = (user: BlockItem) => {
     Alert.alert(
@@ -30,27 +32,38 @@ export default function BlockListScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScreenHeader title="차단 목록" />
-
+      <Text style={styles.countText}>차단한 유저 {blocks.length}명</Text>
       <FlatList
-        data={data?.blocks ?? []}
+        data={blocks}
         keyExtractor={(item) => item.userId}
         renderItem={({ item }) => (
-          <View style={styles.itemContainer}>
-            <View style={styles.itemInfo}>
+          <SwipeableCard
+            renderRightActions={() => null}
+            innerStyle={styles.innerContent}
+          >
+            <View style={styles.info}>
               <Text style={styles.nickname}>{item.nickname}</Text>
-              <Text style={styles.tag}>
-                @{item.tag} | {formatRelativeTime(item.blockedAt)}
-              </Text>
+              <View style={styles.subRow}>
+                <Text style={styles.time}>
+                  {formatRelativeTime(item.blockedAt)} 차단함
+                </Text>
+                <Text style={styles.tag}>#{item.tag}</Text>
+              </View>
             </View>
             <Pressable
-              style={styles.unblockBtn}
+              style={styles.actionBtn}
               onPress={() => handleUnblock(item)}
+              disabled={unblockMutation.isPending}
             >
-              <Text style={styles.unblockText}>해제</Text>
+              <View style={styles.actionTextWrap}>
+                <Text style={styles.actionText}>차단</Text>
+                <Text style={styles.actionText}>해제</Text>
+              </View>
             </Pressable>
-          </View>
+          </SwipeableCard>
         )}
         contentContainerStyle={styles.listContent}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListEmptyComponent={
           <Text style={styles.emptyText}>차단한 유저가 없습니다.</Text>
         }
@@ -64,40 +77,70 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.black.dark,
   },
-  listContent: {
+  countText: {
+    color: Colors.white,
+    fontSize: 12,
+    fontFamily: "A2Z-Regular",
     paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingTop: 14,
+    paddingBottom: 11,
+  },
+  listContent: {
     paddingBottom: 40,
   },
-  itemContainer: {
+  separator: {
+    height: 11,
+  },
+  innerContent: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
-    borderBottomWidth: 0.5,
-    borderBottomColor: Colors.black.light,
+    paddingLeft: 26,
   },
-  itemInfo: {
+  info: {
     flex: 1,
+    justifyContent: "center",
   },
   nickname: {
     color: Colors.white,
-    fontSize: 15,
-    marginBottom: 2,
+    fontSize: 22,
+    fontFamily: "A2Z-Medium",
+    marginBottom: 4,
+  },
+  subRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  time: {
+    color: Colors.point.coral,
+    fontSize: 10,
+    fontFamily: "A2Z-Regular",
   },
   tag: {
     color: Colors.text.mid,
-    fontSize: 12,
+    fontSize: 10,
+    fontFamily: "A2Z-Regular",
   },
-  unblockBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 6,
+  actionBtn: {
+    width: 87,
+    height: 85,
+    borderTopLeftRadius: 36,
+    borderBottomLeftRadius: 36,
+    backgroundColor: Colors.black.light,
     borderWidth: 1,
-    borderColor: Colors.point.coral,
+    borderColor: Colors.text.dark,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  unblockText: {
-    color: Colors.point.coral,
-    fontSize: 13,
+  actionTextWrap: {
+    alignItems: "center",
+  },
+  actionText: {
+    color: Colors.white,
+    fontSize: 14,
+    fontFamily: "A2Z-Regular",
+    lineHeight: 18,
+    textAlign: "center",
   },
   emptyText: {
     color: Colors.text.mid,

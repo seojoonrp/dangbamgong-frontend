@@ -1,13 +1,7 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  View,
-  Text,
-  Pressable,
-  StyleSheet,
-  Alert,
-  Dimensions,
-} from "react-native";
-import { Swipeable } from "react-native-gesture-handler";
+import { View, Text, Pressable, StyleSheet, Alert } from "react-native";
+import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable";
 import { Colors } from "../../constants/colors";
 import { formatRelativeTime } from "../../lib/dateUtils";
 import { useNudgeFriend, useRemoveFriend } from "../../hooks/useFriends";
@@ -16,8 +10,7 @@ import { useNudgeCooldown } from "../../hooks/useNudgeCooldown";
 import { ApiError } from "../../api/client";
 import type { FriendItem } from "../../types/dto/friends";
 import SendIcon from "../../../assets/icons/shared/send.svg";
-
-const SCREEN_WIDTH = Dimensions.get("window").width;
+import { SwipeableCard, SwipeActions } from "./SwipeableCard";
 
 interface Props {
   friend: FriendItem;
@@ -30,7 +23,7 @@ export default function FriendListItem({
   onError,
   onForceRefresh,
 }: Props) {
-  const swipeableRef = useRef<Swipeable>(null);
+  const swipeableRef = useRef<SwipeableMethods>(null);
   const nudgeMutation = useNudgeFriend();
   const removeMutation = useRemoveFriend();
   const blockMutation = useBlockUser();
@@ -102,122 +95,83 @@ export default function FriendListItem({
     return `${m}:${String(s).padStart(2, "0")}`;
   };
 
-  const renderRightActions = () => {
-    if (friend.isInVoid) {
-      return (
-        <View style={styles.swipeActions}>
-          <Pressable
-            style={[styles.swipeBtn, styles.deleteBtn]}
-            onPress={handleRemove}
-          >
-            <Text style={styles.swipeBtnText}>삭제</Text>
-          </Pressable>
-          <Pressable
-            style={[styles.swipeBtn, styles.blockBtn]}
-            onPress={handleBlock}
-          >
-            <Text style={styles.swipeBtnText}>차단</Text>
-          </Pressable>
-        </View>
-      );
-    }
-    return (
-      <View style={styles.swipeActions}>
-        <Pressable
-          style={[styles.swipeBtn, styles.deleteBtn]}
-          onPress={handleRemove}
-        >
-          <Text style={styles.swipeBtnText}>삭제</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.swipeBtn, styles.blockBtn]}
-          onPress={handleBlock}
-        >
-          <Text style={styles.swipeBtnText}>차단</Text>
-        </Pressable>
-      </View>
-    );
-  };
+  const renderRightActions = () => (
+    <SwipeActions
+      actions={[
+        { label: "삭제", color: Colors.point.coral, onPress: handleRemove },
+        { label: "차단", color: Colors.point.strong, onPress: handleBlock },
+      ]}
+    />
+  );
 
   if (friend.isInVoid) {
     return (
       <View style={styles.voidWrapper}>
         <View style={styles.voidIndicator} />
-        {/* 핵심: 외부 컨테이너로 감싸고 내부에서 Swipe 처리 */}
         <View style={styles.voidOuterContainer}>
-          <Swipeable
-            ref={swipeableRef}
-            renderRightActions={renderRightActions}
-            overshootRight={false}
-          >
-            <View style={styles.voidInnerContainer}>
-              <View style={styles.info}>
-                <Text style={styles.nickname}>{friend.nickname}</Text>
-                <View style={styles.statusRow}>
-                  <View style={[styles.statusDot, styles.statusDotActive]} />
-                  <Text style={[styles.statusText, styles.statusTextActive]}>
-                    공백 중
-                  </Text>
+          <View style={styles.voidClipContainer}>
+            <ReanimatedSwipeable
+              ref={swipeableRef}
+              renderRightActions={renderRightActions}
+              overshootRight={false}
+            >
+              <View style={styles.voidInnerContainer}>
+                <View style={styles.info}>
+                  <Text style={styles.nickname}>{friend.nickname}</Text>
+                  <View style={styles.statusRow}>
+                    <View style={[styles.statusDot, styles.statusDotActive]} />
+                    <Text style={[styles.statusText, styles.statusTextActive]}>
+                      공백 중
+                    </Text>
+                  </View>
                 </View>
+                <Pressable
+                  style={[
+                    styles.nudgeBtn,
+                    nudgeAvailable
+                      ? styles.nudgeBtnActive
+                      : styles.nudgeBtnDisabled,
+                  ]}
+                  onPress={handleNudge}
+                  disabled={!nudgeAvailable || nudgeMutation.isPending}
+                >
+                  {nudgeAvailable ? (
+                    <SendIcon width={22} height={22} color="#9999A7" />
+                  ) : (
+                    <SendIcon width={22} height={22} color={Colors.text.dark} />
+                  )}
+                </Pressable>
               </View>
-              <Pressable
-                style={[
-                  styles.nudgeBtn,
-                  nudgeAvailable
-                    ? styles.nudgeBtnActive
-                    : styles.nudgeBtnDisabled,
-                ]}
-                onPress={handleNudge}
-                disabled={!nudgeAvailable || nudgeMutation.isPending}
-              >
-                {nudgeAvailable ? (
-                  <SendIcon width={22} height={22} color={Colors.black.dark} />
-                ) : (
-                  <SendIcon width={22} height={22} color={Colors.text.dark} />
-                )}
-              </Pressable>
-            </View>
-          </Swipeable>
+            </ReanimatedSwipeable>
+          </View>
         </View>
       </View>
     );
   }
 
   return (
-    <View style={styles.containerOuter}>
-      <Swipeable
-        ref={swipeableRef}
-        renderRightActions={renderRightActions}
-        overshootRight={false}
-      >
-        <View style={styles.containerInner}>
-          <View style={styles.info}>
-            <Text style={styles.nickname}>{friend.nickname}</Text>
-            <View style={styles.statusRow}>
-              <View style={[styles.statusDot, styles.statusDotInactive]} />
-              <Text style={[styles.statusText, styles.statusTextInactive]}>
-                마지막 공백: {formatRelativeTime(friend.lastVoidEndedAt)}
-              </Text>
-            </View>
-          </View>
+    <SwipeableCard
+      ref={swipeableRef}
+      height={90}
+      borderRadius={26}
+      renderRightActions={renderRightActions}
+      innerStyle={styles.containerInner}
+    >
+      <View style={styles.info}>
+        <Text style={styles.nickname}>{friend.nickname}</Text>
+        <View style={styles.statusRow}>
+          <View style={[styles.statusDot, styles.statusDotInactive]} />
+          <Text style={[styles.statusText, styles.statusTextInactive]}>
+            마지막 공백: {formatRelativeTime(friend.lastVoidEndedAt)}
+          </Text>
         </View>
-      </Swipeable>
-    </View>
+      </View>
+    </SwipeableCard>
   );
 }
 
 const styles = StyleSheet.create({
-  containerOuter: {
-    height: 85,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: Colors.text.dark,
-    marginHorizontal: 8,
-    overflow: "hidden",
-  },
   containerInner: {
-    height: "100%",
-    backgroundColor: "rgba(22, 22, 24, 1)", // 핵심: 배경이 투명하면 뒤쪽 삭제 버튼이 비칠 수 있어 불투명 처리
     paddingHorizontal: 26,
     justifyContent: "center",
   },
@@ -229,14 +183,14 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: -6,
     width: 10,
-    height: 85,
+    height: 90,
     backgroundColor: Colors.white,
     borderTopRightRadius: 99,
     borderBottomRightRadius: 99,
     zIndex: 1,
   },
   voidOuterContainer: {
-    height: 85,
+    height: 90,
     flex: 1,
     borderTopLeftRadius: 24,
     borderBottomLeftRadius: 24,
@@ -245,6 +199,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: Colors.white,
     marginLeft: 15,
+  },
+  voidClipContainer: {
+    flex: 1,
+    borderTopLeftRadius: 23,
+    borderBottomLeftRadius: 23,
     overflow: "hidden",
   },
   voidInnerContainer: {
@@ -281,7 +240,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.text.mid,
   },
   statusText: {
-    fontSize: 10,
+    fontSize: 11,
     fontFamily: "A2Z-Regular",
   },
   statusTextActive: {
@@ -292,11 +251,12 @@ const styles = StyleSheet.create({
   },
   nudgeBtn: {
     width: 87,
-    height: 85,
+    height: 90,
     borderTopLeftRadius: 36,
     borderBottomLeftRadius: 36,
     justifyContent: "center",
     alignItems: "center",
+    paddingLeft: 2,
   },
   nudgeBtnActive: {
     backgroundColor: Colors.white,
@@ -305,25 +265,5 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.black.light,
     borderWidth: 1,
     borderColor: Colors.text.dark,
-  },
-  swipeActions: {
-    flexDirection: "row",
-    alignItems: "stretch",
-  },
-  swipeBtn: {
-    justifyContent: "center",
-    alignItems: "center",
-    width: 72,
-  },
-  deleteBtn: {
-    backgroundColor: Colors.point.coral,
-  },
-  blockBtn: {
-    backgroundColor: Colors.point.strong,
-  },
-  swipeBtnText: {
-    color: Colors.white,
-    fontSize: 16,
-    fontFamily: "A2Z-Regular",
   },
 });

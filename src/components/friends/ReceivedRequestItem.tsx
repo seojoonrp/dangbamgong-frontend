@@ -1,6 +1,5 @@
 import { useRef } from "react";
 import { View, Text, Pressable, StyleSheet, Alert } from "react-native";
-import { Swipeable } from "react-native-gesture-handler";
 import { Colors } from "../../constants/colors";
 import { formatRelativeTime } from "../../lib/dateUtils";
 import {
@@ -9,6 +8,11 @@ import {
 } from "../../hooks/useFriends";
 import { useBlockUser } from "../../hooks/useUser";
 import type { ReceivedRequestItem as RequestItemType } from "../../types/dto/friends";
+import {
+  SwipeableCard,
+  SwipeActions,
+  type SwipeableMethods,
+} from "./SwipeableCard";
 
 interface Props {
   request: RequestItemType;
@@ -16,7 +20,7 @@ interface Props {
 }
 
 export default function ReceivedRequestItem({ request, onError }: Props) {
-  const swipeableRef = useRef<Swipeable>(null);
+  const swipeableRef = useRef<SwipeableMethods>(null);
   const acceptMutation = useAcceptFriendRequest();
   const rejectMutation = useRejectFriendRequest();
   const blockMutation = useBlockUser();
@@ -43,51 +47,45 @@ export default function ReceivedRequestItem({ request, onError }: Props) {
   };
 
   const renderRightActions = () => (
-    <View style={styles.swipeActions}>
-      <Pressable style={[styles.swipeBtn, styles.rejectBtn]} onPress={handleReject}>
-        <Text style={styles.swipeBtnText}>거절</Text>
-      </Pressable>
-      <Pressable style={[styles.swipeBtn, styles.blockBtn]} onPress={handleBlock}>
-        <Text style={styles.swipeBtnText}>차단</Text>
-      </Pressable>
-    </View>
+    <SwipeActions
+      actions={[
+        { label: "거절", color: Colors.point.coral, onPress: handleReject },
+        { label: "차단", color: Colors.point.strong, onPress: handleBlock },
+      ]}
+    />
   );
 
   return (
-    <Swipeable ref={swipeableRef} renderRightActions={renderRightActions} overshootRight={false}>
-      <View style={styles.container}>
-        <View style={styles.info}>
-          <Text style={styles.nickname}>{request.sender.nickname}</Text>
-          <View style={styles.subRow}>
-            <Text style={styles.time}>
-              {formatRelativeTime(request.createdAt)}
-            </Text>
-            <Text style={styles.tag}>#{request.sender.tag}</Text>
-          </View>
+    <SwipeableCard
+      ref={swipeableRef}
+      renderRightActions={renderRightActions}
+      innerStyle={styles.innerContent}
+    >
+      <View style={styles.info}>
+        <Text style={styles.nickname}>{request.sender.nickname}</Text>
+        <View style={styles.subRow}>
+          <Text style={styles.time}>
+            {formatRelativeTime(request.createdAt)}
+          </Text>
+          <Text style={styles.tag}>#{request.sender.tag}</Text>
         </View>
-        <Pressable
-          style={styles.acceptBtn}
-          onPress={handleAccept}
-          disabled={acceptMutation.isPending}
-        >
-          <Text style={styles.acceptText}>수락</Text>
-        </Pressable>
       </View>
-    </Swipeable>
+      <Pressable
+        style={styles.acceptBtn}
+        onPress={handleAccept}
+        disabled={acceptMutation.isPending}
+      >
+        <Text style={styles.acceptText}>수락</Text>
+      </Pressable>
+    </SwipeableCard>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    height: 85,
+  innerContent: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: Colors.text.dark,
-    backgroundColor: "rgba(22, 22, 24, 0.5)",
     paddingLeft: 26,
-    marginHorizontal: 8,
   },
   info: {
     flex: 1,
@@ -126,26 +124,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   acceptText: {
-    color: Colors.white,
-    fontSize: 16,
-    fontFamily: "A2Z-Regular",
-  },
-  swipeActions: {
-    flexDirection: "row",
-    alignItems: "stretch",
-  },
-  swipeBtn: {
-    justifyContent: "center",
-    alignItems: "center",
-    width: 72,
-  },
-  rejectBtn: {
-    backgroundColor: Colors.point.coral,
-  },
-  blockBtn: {
-    backgroundColor: Colors.point.strong,
-  },
-  swipeBtnText: {
     color: Colors.white,
     fontSize: 16,
     fontFamily: "A2Z-Regular",

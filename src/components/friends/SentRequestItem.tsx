@@ -1,9 +1,13 @@
 import { useRef } from "react";
-import { View, Text, Pressable, StyleSheet, Alert } from "react-native";
-import { Swipeable } from "react-native-gesture-handler";
+import { View, Text, StyleSheet } from "react-native";
 import { Colors } from "../../constants/colors";
 import { formatRelativeTime } from "../../lib/dateUtils";
 import { useDeleteFriendRequest } from "../../hooks/useFriends";
+import {
+  SwipeableCard,
+  SwipeActions,
+  type SwipeableMethods,
+} from "./SwipeableCard";
 
 interface SentRequest {
   requestId: string;
@@ -21,7 +25,7 @@ interface Props {
 }
 
 export default function SentRequestItem({ request }: Props) {
-  const swipeableRef = useRef<Swipeable>(null);
+  const swipeableRef = useRef<SwipeableMethods>(null);
   const deleteMutation = useDeleteFriendRequest();
 
   const isRejected = request.status === "rejected";
@@ -32,56 +36,56 @@ export default function SentRequestItem({ request }: Props) {
   };
 
   const renderRightActions = () => (
-    <View style={styles.swipeActions}>
-      <Pressable style={[styles.swipeBtn, styles.cancelBtn]} onPress={handleDelete}>
-        <Text style={styles.swipeBtnText}>{isRejected ? "삭제" : "취소"}</Text>
-      </Pressable>
-    </View>
+    <SwipeActions
+      actions={[
+        {
+          label: isRejected ? "삭제" : "취소",
+          color: Colors.point.coral,
+          onPress: handleDelete,
+        },
+      ]}
+    />
   );
 
   return (
-    <Swipeable ref={swipeableRef} renderRightActions={renderRightActions} overshootRight={false}>
-      <View style={styles.container}>
-        <View style={styles.info}>
-          <Text style={styles.nickname}>{request.receiver.nickname}</Text>
-          <View style={styles.subRow}>
-            <Text style={styles.time}>
-              {formatRelativeTime(request.createdAt)}
-            </Text>
-            <Text style={styles.tag}>#{request.receiver.tag}</Text>
-          </View>
-        </View>
-        <View
-          style={[
-            styles.statusBtn,
-            isRejected && styles.statusBtnRejected,
-          ]}
-        >
-          {isRejected ? (
-            <Text style={styles.statusTextRejected}>거절됨</Text>
-          ) : (
-            <View style={styles.statusTextWrap}>
-              <Text style={styles.statusTextPending}>수락</Text>
-              <Text style={styles.statusTextPending}>대기중</Text>
-            </View>
-          )}
+    <SwipeableCard
+      ref={swipeableRef}
+      renderRightActions={renderRightActions}
+      innerStyle={styles.innerContent}
+    >
+      <View style={styles.info}>
+        <Text style={styles.nickname}>{request.receiver.nickname}</Text>
+        <View style={styles.subRow}>
+          <Text style={styles.time}>
+            {formatRelativeTime(request.createdAt)}
+          </Text>
+          <Text style={styles.tag}>#{request.receiver.tag}</Text>
         </View>
       </View>
-    </Swipeable>
+      <View
+        style={[
+          styles.statusBtn,
+          isRejected && styles.statusBtnRejected,
+        ]}
+      >
+        {isRejected ? (
+          <Text style={styles.statusTextRejected}>거절됨</Text>
+        ) : (
+          <View style={styles.statusTextWrap}>
+            <Text style={styles.statusTextPending}>수락</Text>
+            <Text style={styles.statusTextPending}>대기중</Text>
+          </View>
+        )}
+      </View>
+    </SwipeableCard>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    height: 85,
+  innerContent: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: Colors.text.dark,
-    backgroundColor: "rgba(22, 22, 24, 0.5)",
     paddingLeft: 26,
-    marginHorizontal: 8,
   },
   info: {
     flex: 1,
@@ -137,22 +141,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "A2Z-Regular",
     textAlign: "center",
-  },
-  swipeActions: {
-    flexDirection: "row",
-    alignItems: "stretch",
-  },
-  swipeBtn: {
-    justifyContent: "center",
-    alignItems: "center",
-    width: 72,
-  },
-  cancelBtn: {
-    backgroundColor: Colors.point.coral,
-  },
-  swipeBtnText: {
-    color: Colors.white,
-    fontSize: 16,
-    fontFamily: "A2Z-Regular",
   },
 });
