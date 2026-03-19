@@ -4,18 +4,18 @@ import {
   Text,
   TextInput,
   FlatList,
-  Pressable,
   StyleSheet,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../../../constants/colors";
 import { Layout } from "../../../constants/layout";
 import ScreenHeader from "../../../components/navigation/ScreenHeader";
+import SearchResultItem from "../../../components/friends/SearchResultItem";
 import Toast from "../../../components/shared/Toast";
+import SearchIcon from "../../../../assets/icons/shared/search.svg";
 import { useDebounce } from "../../../hooks/useDebounce";
-import { useSearchUsers, useBlockUser, useUnblockUser } from "../../../hooks/useUser";
+import { useSearchUsers, useUnblockUser } from "../../../hooks/useUser";
 import { useSendFriendRequest } from "../../../hooks/useFriends";
 import { ApiError } from "../../../api/client";
 import type { UserSearchItem } from "../../../types/dto/users";
@@ -31,11 +31,14 @@ export default function FriendSearchScreen() {
   const debouncedQuery = useDebounce(query.trim(), 1000);
   const { data, isLoading } = useSearchUsers(debouncedQuery);
   const sendRequest = useSendFriendRequest();
-  const blockUser = useBlockUser();
   const unblockUser = useUnblockUser();
 
   const showToast = (message: string, type: "success" | "error") => {
     setToast({ visible: true, message, type });
+  };
+
+  const handleChangeText = (text: string) => {
+    setQuery(text.toUpperCase());
   };
 
   const handleSendRequest = async (userId: string) => {
@@ -61,17 +64,6 @@ export default function FriendSearchScreen() {
     }
   };
 
-  const handleBlock = (userId: string, nickname: string) => {
-    Alert.alert("차단", `${nickname}님을 차단하시겠습니까?`, [
-      { text: "취소", style: "cancel" },
-      {
-        text: "차단",
-        style: "destructive",
-        onPress: () => blockUser.mutate(userId),
-      },
-    ]);
-  };
-
   const handleUnblock = async (userId: string) => {
     try {
       await unblockUser.mutateAsync(userId);
@@ -85,83 +77,69 @@ export default function FriendSearchScreen() {
     a.tag.localeCompare(b.tag),
   );
 
-  const renderItem = ({ item }: { item: UserSearchItem }) => (
-    <View
-      style={[
-        styles.userItem,
-        item.isBlocked && styles.blockedItem,
-      ]}
-    >
-      <View style={styles.userInfo}>
-        <Text style={styles.nickname}>{item.nickname}</Text>
-        <Text style={styles.tag}>@{item.tag}</Text>
-      </View>
+  const hasQuery = debouncedQuery.length > 0;
+  const hasResults = users.length > 0;
 
-      {item.isBlocked ? (
-        <Pressable
-          style={styles.unblockBtn}
-          onPress={() => handleUnblock(item.userId)}
-        >
-          <Text style={styles.unblockText}>차단 해제</Text>
-        </Pressable>
-      ) : (
-        <View style={styles.itemActions}>
-          <Pressable
-            style={styles.requestBtn}
-            onPress={() => handleSendRequest(item.userId)}
-            disabled={sendRequest.isPending}
-          >
-            {sendRequest.isPending ? (
-              <ActivityIndicator color={Colors.white} size="small" />
-            ) : (
-              <Text style={styles.requestText}>요청</Text>
-            )}
-          </Pressable>
-          <Pressable
-            onPress={() => handleBlock(item.userId, item.nickname)}
-          >
-            <Text style={styles.blockText}>...</Text>
-          </Pressable>
-        </View>
-      )}
-    </View>
+  const renderItem = ({ item }: { item: UserSearchItem }) => (
+    <SearchResultItem
+      user={item}
+      onSendRequest={handleSendRequest}
+      onUnblock={handleUnblock}
+    />
   );
 
   return (
     <SafeAreaView style={styles.container}>
       <ScreenHeader title="친구 추가" />
 
-      <TextInput
-        style={styles.searchInput}
-        placeholder="태그로 친구를 검색하세요..."
-        placeholderTextColor={Colors.text.mid}
-        value={query}
-        onChangeText={setQuery}
-        autoCapitalize="none"
-        autoCorrect={false}
-        autoFocus
-      />
-      <Text style={styles.hint}>
-        태그는 [설정] &gt; [프로필]에서 확인할 수 있습니다
-      </Text>
+      <View style={styles.searchBox}>
+        <SearchIcon
+          width={18}
+          height={18}
+          color={Colors.text.mid}
+          style={styles.searchIcon}
+        />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="태그로 친구를 검색하세요..."
+          placeholderTextColor={Colors.text.mid}
+          value={query}
+          onChangeText={handleChangeText}
+          autoCapitalize="characters"
+          autoCorrect={false}
+          autoFocus
+        />
+      </View>
 
-      {isLoading && debouncedQuery ? (
+      {isLoading && hasQuery ? (
         <ActivityIndicator
           color={Colors.white}
           style={{ marginTop: 40 }}
         />
+      ) : hasQuery && hasResults ? (
+        <>
+          <Text style={styles.resultCount}>
+            검색 결과 {users.length}개
+          </Text>
+          <FlatList
+            data={users}
+            keyExtractor={(item) => item.userId}
+            renderItem={renderItem}
+            contentContainerStyle={styles.listContent}
+            ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+          />
+        </>
+      ) : hasQuery && !hasResults ? (
+        <View style={styles.centerContainer}>
+          <Text style={styles.emptyText}>검색 결과가 없습니다.</Text>
+        </View>
       ) : (
-        <FlatList
-          data={users}
-          keyExtractor={(item) => item.userId}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={
-            debouncedQuery ? (
-              <Text style={styles.emptyText}>검색 결과가 없습니다.</Text>
-            ) : null
-          }
-        />
+        <View style={styles.centerContainer}>
+          <Text style={styles.hintText}>
+            <Text style={styles.hintBold}>[설정] → [프로필]</Text>
+            에서{"\n"}태그를 확인할 수 있어요!
+          </Text>
+        </View>
       )}
 
       <Toast
@@ -180,87 +158,60 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.black.dark,
     paddingBottom: Layout.bottomTabHeight,
   },
-  searchInput: {
-    height: 44,
-    backgroundColor: Colors.black.mid,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    color: Colors.white,
-    fontSize: 15,
-    marginTop: 12,
-    marginHorizontal: 16,
-  },
-  hint: {
-    color: Colors.text.mid,
-    fontSize: 12,
+  searchBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: 48,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Colors.text.mid,
+    marginHorizontal: 8,
     marginTop: 8,
-    marginHorizontal: 16,
+    paddingHorizontal: 14,
+    overflow: "hidden",
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    height: "100%",
+    color: Colors.white,
+    fontSize: 14,
+    fontFamily: "A2Z-Regular",
+    padding: 0,
+  },
+  resultCount: {
+    color: Colors.white,
+    fontSize: 12,
+    fontFamily: "A2Z-Regular",
+    marginLeft: 17,
+    marginTop: 18,
+    marginBottom: 8,
   },
   listContent: {
-    paddingTop: 12,
+    paddingTop: 4,
     paddingBottom: 40,
   },
-  userItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderBottomWidth: 0.5,
-    borderBottomColor: Colors.black.light,
-  },
-  blockedItem: {
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.point.coral,
-  },
-  userInfo: {
+  centerContainer: {
     flex: 1,
-    flexDirection: "row",
+    justifyContent: "center",
     alignItems: "center",
-    gap: 6,
-  },
-  nickname: {
-    color: Colors.white,
-    fontSize: 15,
-  },
-  tag: {
-    color: Colors.text.mid,
-    fontSize: 13,
-  },
-  itemActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  requestBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 6,
-    backgroundColor: Colors.point.coral,
-  },
-  requestText: {
-    color: Colors.white,
-    fontSize: 13,
-  },
-  blockText: {
-    color: Colors.text.mid,
-    fontSize: 18,
-    fontFamily: "A2Z-Bold",
-  },
-  unblockBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: Colors.point.coral,
-  },
-  unblockText: {
-    color: Colors.point.coral,
-    fontSize: 13,
   },
   emptyText: {
     color: Colors.text.mid,
     fontSize: 14,
+    fontFamily: "A2Z-Regular",
     textAlign: "center",
-    marginTop: 40,
+  },
+  hintText: {
+    color: Colors.white,
+    fontSize: 14,
+    fontFamily: "A2Z-Regular",
+    textAlign: "center",
+    lineHeight: 22,
+  },
+  hintBold: {
+    fontFamily: "A2Z-SemiBold",
   },
 });

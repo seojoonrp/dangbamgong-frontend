@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
+  runOnJS,
 } from "react-native-reanimated";
 import { Colors } from "../../constants/colors";
 import {
@@ -30,13 +31,18 @@ interface Props {
 
 export default function NotificationDrawer({ visible, onClose }: Props) {
   const translateX = useSharedValue(SCREEN_WIDTH);
+  const [shouldRender, setShouldRender] = useState(false);
   const { data } = useNotifications();
   const markAsRead = useMarkAsRead();
 
   useEffect(() => {
+    if (visible) setShouldRender(true);
     translateX.value = withTiming(
       visible ? SCREEN_WIDTH - DRAWER_WIDTH : SCREEN_WIDTH,
       { duration: 300 },
+      (finished) => {
+        if (finished && !visible) runOnJS(setShouldRender)(false);
+      },
     );
   }, [visible]);
 
@@ -71,7 +77,7 @@ export default function NotificationDrawer({ visible, onClose }: Props) {
     </Pressable>
   );
 
-  if (!visible && translateX.value >= SCREEN_WIDTH) return null;
+  if (!shouldRender) return null;
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents={visible ? "auto" : "none"}>

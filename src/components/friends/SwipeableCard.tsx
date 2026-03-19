@@ -15,6 +15,7 @@ export type { SwipeableMethods };
 interface SwipeableCardProps {
   height?: number;
   borderRadius?: number;
+  borderColor?: string;
   renderRightActions: () => ReactNode;
   children: ReactNode;
   innerStyle?: ViewStyle;
@@ -25,6 +26,7 @@ export const SwipeableCard = forwardRef<SwipeableMethods, SwipeableCardProps>(
     {
       height = 85,
       borderRadius = 24,
+      borderColor,
       renderRightActions,
       children,
       innerStyle,
@@ -32,7 +34,7 @@ export const SwipeableCard = forwardRef<SwipeableMethods, SwipeableCardProps>(
     ref,
   ) {
     return (
-      <View style={[styles.containerOuter, { height, borderRadius }]}>
+      <View style={[styles.containerOuter, { height, borderRadius }, borderColor ? { borderColor } : undefined]}>
         <ReanimatedSwipeable
           ref={ref}
           renderRightActions={renderRightActions}
