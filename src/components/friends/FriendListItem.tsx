@@ -162,7 +162,9 @@ export default function FriendListItem({
         <View style={styles.statusRow}>
           <View style={[styles.statusDot, styles.statusDotInactive]} />
           <Text style={[styles.statusText, styles.statusTextInactive]}>
-            마지막 공백: {formatRelativeTime(friend.lastVoidEndedAt)}
+            {friend.lastVoidEndedAt
+              ? `마지막 공백: ${formatRelativeTime(friend.lastVoidEndedAt)}`
+              : "마지막 공백 없음"}
           </Text>
         </View>
       </View>

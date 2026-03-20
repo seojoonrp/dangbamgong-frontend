@@ -1,5 +1,18 @@
-import { useState, useCallback } from "react";
-import { View, Text, FlatList, StyleSheet, Pressable } from "react-native";
+import { useState, useCallback, useEffect } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  Pressable,
+  useWindowDimensions,
+} from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Colors } from "../../../constants/colors";
@@ -18,8 +31,38 @@ import { queryKeys } from "../../../lib/queryKeys";
 
 type FriendTab = "list" | "received" | "sent";
 
+const TABS = [
+  { key: "list", label: "친구 목록" },
+  { key: "received", label: "받은 요청" },
+  { key: "sent", label: "보낸 요청" },
+] as const;
+
+const TAB_COUNT = TABS.length;
+const TABS_PADDING_HOR = 8;
+const INDICATOR_WIDTH = 96;
+
 export default function FriendsScreen() {
   const [activeTab, setActiveTab] = useState<FriendTab>("list");
+  const { width: screenWidth } = useWindowDimensions();
+  const tabWidth = (screenWidth - TABS_PADDING_HOR * 2) / TAB_COUNT;
+
+  const tabIndex = TABS.findIndex((t) => t.key === activeTab);
+  const indicatorX = useSharedValue(
+    tabIndex * tabWidth + (tabWidth - INDICATOR_WIDTH) / 2,
+  );
+
+  useEffect(() => {
+    const idx = TABS.findIndex((t) => t.key === activeTab);
+    indicatorX.value = withTiming(
+      idx * tabWidth + (tabWidth - INDICATOR_WIDTH) / 2,
+      { duration: 700, easing: Easing.bezier(0.1, 1, 0.4, 1) },
+    );
+  }, [activeTab, tabWidth]);
+
+  const indicatorStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: indicatorX.value }],
+  }));
+
   const [toast, setToast] = useState({
     visible: false,
     message: "",
@@ -133,19 +176,14 @@ export default function FriendsScreen() {
             onPress={() => router.push("/(tabs)/friends/search")}
             style={styles.addButton}
           >
-            <PlusIcon width={12} height={12} color={Colors.white} />
+            <PlusIcon width={14} height={14} color={Colors.white} />
           </Pressable>
         }
       />
 
       <View style={styles.tabs}>
-        {(
-          [
-            { key: "list", label: "친구 목록" },
-            { key: "received", label: "받은 요청" },
-            { key: "sent", label: "보낸 요청" },
-          ] as const
-        ).map((tab) => (
+        <Animated.View style={[styles.tabIndicator, indicatorStyle]} />
+        {TABS.map((tab) => (
           <Pressable
             key={tab.key}
             style={styles.tab}
@@ -164,7 +202,6 @@ export default function FriendsScreen() {
                 receivedRequests.length > 0 &&
                 activeTab !== "received" && <View style={styles.tabDot} />}
             </View>
-            {activeTab === tab.key && <View style={styles.tabIndicator} />}
           </Pressable>
         ))}
       </View>
@@ -189,8 +226,8 @@ const styles = StyleSheet.create({
   },
   addButton: {
     width: 64,
-    height: 28,
-    borderRadius: 12,
+    height: 32,
+    borderRadius: 14,
     backgroundColor: Colors.text.dark,
     justifyContent: "center",
     alignItems: "center",
@@ -203,13 +240,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.black.light,
     paddingHorizontal: 8,
+    overflow: "hidden",
   },
   tab: {
     flex: 1,
     height: 40,
     alignItems: "center",
     justifyContent: "center",
-    overflow: "hidden",
   },
   tabLabelRow: {
     flexDirection: "row",
@@ -233,8 +270,9 @@ const styles = StyleSheet.create({
   },
   tabIndicator: {
     position: "absolute",
-    bottom: -13.6,
-    width: 96,
+    bottom: -14.3,
+    left: TABS_PADDING_HOR,
+    width: INDICATOR_WIDTH,
     height: 16,
     borderRadius: 12,
     backgroundColor: Colors.white,
@@ -259,7 +297,8 @@ const styles = StyleSheet.create({
   emptyText: {
     color: Colors.text.mid,
     fontSize: 14,
+    fontFamily: "A2Z-Regular",
     textAlign: "center",
-    marginTop: 40,
+    marginTop: 200,
   },
 });

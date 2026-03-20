@@ -104,17 +104,17 @@ const styles = StyleSheet.create({
   },
   time: {
     color: Colors.point.coral,
-    fontSize: 10,
+    fontSize: 11,
     fontFamily: "A2Z-Regular",
   },
   tag: {
     color: Colors.text.mid,
-    fontSize: 10,
+    fontSize: 11,
     fontFamily: "A2Z-Regular",
   },
   statusBtn: {
     width: 87,
-    height: 85,
+    height: 90,
     borderTopLeftRadius: 36,
     borderBottomLeftRadius: 36,
     backgroundColor: Colors.black.light,

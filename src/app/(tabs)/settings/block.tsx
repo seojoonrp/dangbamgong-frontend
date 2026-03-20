@@ -1,4 +1,11 @@
-import { View, Text, FlatList, Pressable, StyleSheet, Alert } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Alert,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../../../constants/colors";
 import ScreenHeader from "../../../components/navigation/ScreenHeader";
@@ -14,17 +21,13 @@ export default function BlockListScreen() {
   const blocks = data?.blocks ?? [];
 
   const handleUnblock = (user: BlockItem) => {
-    Alert.alert(
-      "차단 해제",
-      `${user.nickname}님의 차단을 해제하시겠습니까?`,
-      [
-        { text: "취소", style: "cancel" },
-        {
-          text: "해제",
-          onPress: () => unblockMutation.mutate(user.userId),
-        },
-      ],
-    );
+    Alert.alert("차단 해제", `${user.nickname}님의 차단을 해제하시겠습니까?`, [
+      { text: "취소", style: "cancel" },
+      {
+        text: "해제",
+        onPress: () => unblockMutation.mutate(user.userId),
+      },
+    ]);
   };
 
   if (isLoading) return <LoadingView />;
@@ -113,17 +116,17 @@ const styles = StyleSheet.create({
   },
   time: {
     color: Colors.point.coral,
-    fontSize: 10,
+    fontSize: 11,
     fontFamily: "A2Z-Regular",
   },
   tag: {
     color: Colors.text.mid,
-    fontSize: 10,
+    fontSize: 11,
     fontFamily: "A2Z-Regular",
   },
   actionBtn: {
     width: 87,
-    height: 85,
+    height: 90,
     borderTopLeftRadius: 36,
     borderBottomLeftRadius: 36,
     backgroundColor: Colors.black.light,
@@ -145,7 +148,8 @@ const styles = StyleSheet.create({
   emptyText: {
     color: Colors.text.mid,
     fontSize: 14,
+    fontFamily: "A2Z-Regular",
     textAlign: "center",
-    marginTop: 40,
+    marginTop: 200,
   },
 });

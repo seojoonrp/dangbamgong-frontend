@@ -1,4 +1,4 @@
-import { forwardRef, type ReactNode } from "react";
+import { forwardRef, type ReactNode, type RefObject } from "react";
 import {
   View,
   Text,
@@ -24,8 +24,8 @@ interface SwipeableCardProps {
 export const SwipeableCard = forwardRef<SwipeableMethods, SwipeableCardProps>(
   function SwipeableCard(
     {
-      height = 85,
-      borderRadius = 24,
+      height = 90,
+      borderRadius = 26,
       borderColor,
       renderRightActions,
       children,
@@ -34,9 +34,15 @@ export const SwipeableCard = forwardRef<SwipeableMethods, SwipeableCardProps>(
     ref,
   ) {
     return (
-      <View style={[styles.containerOuter, { height, borderRadius }, borderColor ? { borderColor } : undefined]}>
+      <View
+        style={[
+          styles.containerOuter,
+          { height, borderRadius },
+          borderColor ? { borderColor } : undefined,
+        ]}
+      >
         <ReanimatedSwipeable
-          ref={ref}
+          ref={ref as RefObject<SwipeableMethods | null>}
           renderRightActions={renderRightActions}
           overshootRight={false}
         >

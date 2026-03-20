@@ -95,12 +95,12 @@ const styles = StyleSheet.create({
   },
   tag: {
     color: Colors.text.mid,
-    fontSize: 10,
+    fontSize: 11,
     fontFamily: "A2Z-Regular",
   },
   requestBtn: {
     width: 120,
-    height: 85,
+    height: 90,
     borderTopLeftRadius: 36,
     borderBottomLeftRadius: 36,
     backgroundColor: Colors.black.light,
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
   },
   statusBtn: {
     width: 120,
-    height: 85,
+    height: 90,
     borderTopLeftRadius: 36,
     borderBottomLeftRadius: 36,
     justifyContent: "center",

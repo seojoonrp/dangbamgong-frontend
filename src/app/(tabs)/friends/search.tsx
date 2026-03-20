@@ -107,20 +107,14 @@ export default function FriendSearchScreen() {
           onChangeText={handleChangeText}
           autoCapitalize="characters"
           autoCorrect={false}
-          autoFocus
         />
       </View>
 
       {isLoading && hasQuery ? (
-        <ActivityIndicator
-          color={Colors.white}
-          style={{ marginTop: 40 }}
-        />
+        <ActivityIndicator color={Colors.white} style={{ marginTop: 40 }} />
       ) : hasQuery && hasResults ? (
         <>
-          <Text style={styles.resultCount}>
-            검색 결과 {users.length}개
-          </Text>
+          <Text style={styles.resultCount}>검색 결과 {users.length}개</Text>
           <FlatList
             data={users}
             keyExtractor={(item) => item.userId}

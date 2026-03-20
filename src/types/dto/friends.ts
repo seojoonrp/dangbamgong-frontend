@@ -5,7 +5,7 @@ export interface FriendItem {
   nickname: string;
   tag: string;
   isInVoid: boolean;
-  lastVoidEndedAt: string;
+  lastVoidEndedAt: string | null;
   createdAt: string;
 }
 
