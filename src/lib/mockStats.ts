@@ -2,45 +2,53 @@ import type { DailyStatResponse, BucketItem } from "../types/dto/stats";
 import type { VoidHistoryResponse } from "../types/dto/void";
 
 /**
- * Mock 히스토그램 버킷 생성 (16:00 ~ next 16:00, 10분 단위 = 144개)
- * 스크린샷 기준: 00시~08시 사이에 정규분포 형태로 분포
+ * Mock 히스토그램 버킷 (16:00 ~ next 16:00, 20분 단위 = 72개)
+ * 하드코딩된 count 값으로 자연스러운 정규분포 형태
  */
-function generateMockBuckets(): BucketItem[] {
-  const buckets: BucketItem[] = [];
-  for (let i = 0; i < 144; i++) {
-    const totalMinutes = 960 + i * 10; // 16:00 기준
+const MOCK_COUNTS = [
+  // 16:00~19:40 (i=0~11): 거의 없음
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  // 20:00~21:40 (i=12~17): 서서히 증가
+  0, 0, 1, 2, 3, 4,
+  // 22:00~23:40 (i=18~23): 본격 증가
+  5, 7, 9, 12, 15, 18,
+  // 00:00~01:40 (i=24~29): 피크
+  20, 23, 25, 24, 22, 20,
+  // 02:00~03:40 (i=30~35): 감소 시작
+  18, 16, 14, 11, 9, 7,
+  // 04:00~05:40 (i=36~41): 감소
+  5, 4, 3, 2, 2, 1,
+  // 06:00~07:40 (i=42~47): 거의 없음
+  1, 0, 0, 0, 0, 0,
+  // 08:00~15:40 (i=48~71): 없음
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+];
+
+function buildMockBuckets(): BucketItem[] {
+  return MOCK_COUNTS.map((count, i) => {
+    const totalMinutes = 960 + i * 20;
     const hour = Math.floor((totalMinutes % 1440) / 60);
+    const minute = totalMinutes % 60;
 
-    // 00~06시 사이에 정규분포 형태로 count 생성
-    let count = 0;
-    if (hour >= 0 && hour <= 8) {
-      // 02시(peak) 기준 정규분포
-      const peakHour = 2;
-      const dist = Math.abs(hour + (totalMinutes % 60) / 60 - peakHour);
-      count = Math.max(0, Math.round(25 * Math.exp(-0.3 * dist * dist)));
-      // 약간의 랜덤성
-      count = Math.max(0, count + Math.floor((Math.sin(i * 7) * 5)));
-    }
-
-    // 내 세션: 23:30 ~ 02:00 범위
+    // 내 세션: 23:20 ~ 02:00 범위
     const isMine =
-      (hour === 23 && totalMinutes % 60 >= 30) ||
-      (hour === 0) ||
-      (hour === 1) ||
-      (hour === 2 && totalMinutes % 60 === 0);
+      (hour === 23 && minute >= 20) ||
+      hour === 0 ||
+      hour === 1 ||
+      (hour === 2 && minute === 0);
 
-    buckets.push({
-      time: `${String(hour).padStart(2, "0")}:${String(totalMinutes % 60).padStart(2, "0")}`,
+    return {
+      time: `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
       count,
       isMine,
-    });
-  }
-  return buckets;
+    };
+  });
 }
 
 export const MOCK_DAILY_STATS: DailyStatResponse = {
   targetDay: "2026-03-04",
-  buckets: generateMockBuckets(),
+  buckets: buildMockBuckets(),
   mySessions: [
     {
       startedAt: "2026-03-04T23:28:00+09:00",

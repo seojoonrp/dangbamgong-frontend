@@ -1,6 +1,6 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "../../constants/colors";
+import ArrowIcon from "../../../assets/icons/shared/arrow.svg";
 import {
   formatDisplayDate,
   canNavigateNext,
@@ -29,9 +29,9 @@ export default function DateNavigator({
         disabled={!canPrev}
         style={styles.arrow}
       >
-        <Ionicons
-          name="chevron-back"
-          size={22}
+        <ArrowIcon
+          width={20}
+          height={20}
           color={canPrev ? Colors.white : Colors.text.dark}
         />
       </Pressable>
@@ -43,10 +43,11 @@ export default function DateNavigator({
         disabled={!canNext}
         style={styles.arrow}
       >
-        <Ionicons
-          name="chevron-forward"
-          size={22}
+        <ArrowIcon
+          width={20}
+          height={20}
           color={canNext ? Colors.white : Colors.text.dark}
+          style={{ transform: [{ rotate: "180deg" }] }}
         />
       </Pressable>
     </View>
@@ -58,7 +59,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 16,
+    paddingTop: 4,
+    paddingBottom: 8,
     gap: 16,
   },
   arrow: {

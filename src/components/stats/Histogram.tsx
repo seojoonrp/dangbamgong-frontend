@@ -1,20 +1,13 @@
 import { useState, useRef } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  Pressable,
-  StyleSheet,
-  Dimensions,
-} from "react-native";
+import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
 import { Colors } from "../../constants/colors";
 import type { BucketItem } from "../../types/dto/stats";
 
 const BAR_WIDTH = 8;
-const BAR_GAP = 2;
+const BAR_GAP = 4;
 const BAR_TOTAL = BAR_WIDTH + BAR_GAP;
-const MAX_BAR_HEIGHT = 120;
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const MAX_BAR_HEIGHT = 185;
+const GRID_LINE_COUNT = 9;
 
 interface Props {
   buckets: BucketItem[];
@@ -27,28 +20,18 @@ export default function Histogram({ buckets, isToday }: Props) {
 
   const maxCount = Math.max(...buckets.map((b) => b.count), 1);
 
-  // 오늘이면 현재 시간 기준으로 표시 제한
-  const now = new Date();
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
-  // 16시 기준으로 변환 (0 = 16:00, 1440 = next 16:00)
-  const minutesSince16 =
-    currentMinutes >= 960
-      ? currentMinutes - 960
-      : currentMinutes + 480;
-  const currentBucketIndex = isToday
-    ? Math.floor(minutesSince16 / 10) - 1
-    : buckets.length;
+  // TODO: 테스트용으로 NOW 비활성화 — 나중에 복원
+  const currentBucketIndex = buckets.length;
 
   const renderBucketLabel = (index: number) => {
-    // 시작 시간: 16:00 + index * 10분
-    const totalMinutes = 960 + index * 10; // 960 = 16 * 60
+    const totalMinutes = 960 + index * 20;
     const h = Math.floor((totalMinutes % 1440) / 60);
     const m = totalMinutes % 60;
     return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
   };
 
-  // NOW 인디케이터의 X 위치 (픽셀)
-  const nowX = isToday ? currentBucketIndex * BAR_TOTAL + BAR_WIDTH / 2 : -1;
+  // NOW 인디케이터 비활성화
+  const nowX = -1;
 
   return (
     <View style={styles.container}>
@@ -58,15 +41,9 @@ export default function Histogram({ buckets, isToday }: Props) {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { width: buckets.length * BAR_TOTAL + 40 },
+          { width: buckets.length * BAR_TOTAL },
         ]}
       >
-        {/* Y축 라벨 */}
-        <View style={styles.yAxis}>
-          <Text style={styles.yLabel}>{maxCount}</Text>
-          <Text style={styles.yLabel}>0</Text>
-        </View>
-
         <View style={styles.barsContainer}>
           {/* 선택된 바 툴팁 */}
           {selectedIndex !== null && (
@@ -85,20 +62,42 @@ export default function Histogram({ buckets, isToday }: Props) {
             </View>
           )}
 
+          {/* 배경 격자선 */}
+          {Array.from({ length: GRID_LINE_COUNT }, (_, i) => (
+            <View
+              key={`grid-${i}`}
+              style={[
+                styles.gridLine,
+                {
+                  top: MAX_BAR_HEIGHT * (1 - (i + 1) / GRID_LINE_COUNT),
+                  width: buckets.length * BAR_TOTAL,
+                },
+              ]}
+            />
+          ))}
+
           {/* NOW 인디케이터 */}
           {isToday && nowX > 0 && (
             <>
               <Text style={[styles.nowLabel, { left: nowX - 16 }]}>NOW</Text>
-              <View style={[styles.nowLine, { left: nowX, height: MAX_BAR_HEIGHT + 4 }]}>
-                {Array.from({ length: Math.ceil((MAX_BAR_HEIGHT + 4) / 6) }, (_, i) => (
-                  <View
-                    key={i}
-                    style={[
-                      styles.nowDash,
-                      i % 2 === 0 ? styles.nowDashVisible : styles.nowDashGap,
-                    ]}
-                  />
-                ))}
+              <View
+                style={[
+                  styles.nowLine,
+                  { left: nowX, height: MAX_BAR_HEIGHT + 4 },
+                ]}
+              >
+                {Array.from(
+                  { length: Math.ceil((MAX_BAR_HEIGHT + 4) / 6) },
+                  (_, i) => (
+                    <View
+                      key={i}
+                      style={[
+                        styles.nowDash,
+                        i % 2 === 0 ? styles.nowDashVisible : styles.nowDashGap,
+                      ]}
+                    />
+                  ),
+                )}
               </View>
             </>
           )}
@@ -110,7 +109,7 @@ export default function Histogram({ buckets, isToday }: Props) {
               const height =
                 bucket.count > 0
                   ? (bucket.count / maxCount) * MAX_BAR_HEIGHT
-                  : 2;
+                  : 0;
 
               return (
                 <Pressable
@@ -136,17 +135,14 @@ export default function Histogram({ buckets, isToday }: Props) {
             })}
           </View>
 
-          {/* X축 라벨 (매시간) */}
+          {/* X축 라벨 (2시간 간격, 13개) */}
           <View style={styles.xAxis}>
-            {Array.from({ length: 25 }, (_, i) => (
+            {Array.from({ length: 13 }, (_, i) => (
               <Text
                 key={i}
-                style={[
-                  styles.xLabel,
-                  { left: i * 6 * BAR_TOTAL - 10 },
-                ]}
+                style={[styles.xLabel, { left: i * 6 * BAR_TOTAL - 8 }]}
               >
-                {String((16 + i) % 24).padStart(2, "0")}
+                {String((16 + i * 2) % 24).padStart(2, "0")}
               </Text>
             ))}
           </View>
@@ -158,27 +154,24 @@ export default function Histogram({ buckets, isToday }: Props) {
 
 const styles = StyleSheet.create({
   container: {
-    height: 200,
-    marginHorizontal: 8,
+    height: MAX_BAR_HEIGHT + 25,
+    marginHorizontal: 13,
+    borderBottomLeftRadius: 36,
+    borderBottomRightRadius: 36,
+    overflow: "hidden",
   },
   scrollContent: {
     flexDirection: "row",
     alignItems: "flex-end",
-    paddingVertical: 20,
-  },
-  yAxis: {
-    width: 30,
-    height: MAX_BAR_HEIGHT,
-    justifyContent: "space-between",
-    marginRight: 4,
-  },
-  yLabel: {
-    color: Colors.text.mid,
-    fontSize: 10,
-    textAlign: "right",
   },
   barsContainer: {
     position: "relative",
+  },
+  gridLine: {
+    position: "absolute",
+    height: 1,
+    backgroundColor: Colors.black.light,
+    opacity: 0.5,
   },
   barsRow: {
     flexDirection: "row",
@@ -192,8 +185,6 @@ const styles = StyleSheet.create({
   },
   bar: {
     width: BAR_WIDTH,
-    borderRadius: 2,
-    minHeight: 2,
   },
   tooltip: {
     position: "absolute",
@@ -212,8 +203,8 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: -20,
     color: Colors.point.coral,
-    fontSize: 10,
-    fontFamily: "A2Z-SemiBold",
+    fontSize: 8,
+    fontFamily: "A2Z-Regular",
     zIndex: 10,
   },
   nowLine: {
@@ -234,12 +225,14 @@ const styles = StyleSheet.create({
   },
   xAxis: {
     position: "relative",
-    height: 20,
-    marginTop: 4,
+    flexDirection: "row",
+    borderTopColor: Colors.white,
+    borderTopWidth: 1,
+    paddingTop: 3,
   },
   xLabel: {
-    position: "absolute",
-    color: Colors.text.mid,
+    color: Colors.white,
     fontSize: 10,
+    fontFamily: "A2Z-Light",
   },
 });
