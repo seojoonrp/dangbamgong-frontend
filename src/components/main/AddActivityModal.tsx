@@ -39,13 +39,12 @@ export default function AddActivityCard({ onClose }: Props) {
   };
 
   return (
-    <View style={styles.overlay}>
-      <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+    <Pressable style={styles.overlay} onPress={onClose}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
       >
-        <View style={styles.card}>
+        <Pressable style={styles.card}>
           <Text style={styles.title}>추가할 활동의 이름을 입력해주세요.</Text>
           <TextInput
             style={[styles.input, showError && styles.inputError]}
@@ -80,9 +79,9 @@ export default function AddActivityCard({ onClose }: Props) {
               )}
             </Pressable>
           </View>
-        </View>
+        </Pressable>
       </KeyboardAvoidingView>
-    </View>
+    </Pressable>
   );
 }
 

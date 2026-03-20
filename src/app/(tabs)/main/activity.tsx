@@ -14,6 +14,9 @@ import { Colors } from "../../../constants/colors";
 import { Layout } from "../../../constants/layout";
 import ScreenHeader from "../../../components/navigation/ScreenHeader";
 import AddActivityModal from "../../../components/main/AddActivityModal";
+import EditIcon from "../../../../assets/icons/shared/edit.svg";
+import DeleteIcon from "../../../../assets/icons/shared/delete.svg";
+import PlusIcon from "../../../../assets/icons/shared/plus.svg";
 import {
   useActivities,
   useUpdateActivity,
@@ -113,9 +116,10 @@ export default function ActivityScreen() {
           ) : (
             <>
               <Text style={styles.itemName}>{item.name}</Text>
-              <Text style={styles.itemMeta}>
-                {item.usageCount}회 사용 | 마지막:{" "}
-                {formatRelativeTime(item.lastUsedAt)}
+              <Text style={styles.itemLastUsed}>
+                {item.lastUsedAt
+                  ? `마지막 사용: ${formatRelativeTime(item.lastUsedAt)}`
+                  : "사용한 적 없음"}
               </Text>
             </>
           )}
@@ -124,24 +128,25 @@ export default function ActivityScreen() {
         <View style={styles.itemActions}>
           {isEditing ? (
             <Pressable
-              style={styles.actionBtn}
+              style={styles.confirmBtn}
               onPress={() => handleSaveEdit(item.id, item.name)}
             >
-              <Text style={styles.actionConfirm}>확인</Text>
+              <Text style={styles.confirmText}>확인</Text>
             </Pressable>
           ) : (
             <>
+              <Text style={styles.usageCount}>{item.usageCount}번 사용됨</Text>
               <Pressable
-                style={styles.actionBtn}
+                style={styles.iconBtnEdit}
                 onPress={() => handleEdit(item)}
               >
-                <Text style={styles.actionText}>수정</Text>
+                <EditIcon width={16} height={16} />
               </Pressable>
               <Pressable
-                style={styles.actionBtn}
+                style={styles.iconBtnDelete}
                 onPress={() => handleDelete(item.id)}
               >
-                <Text style={styles.actionDelete}>삭제</Text>
+                <DeleteIcon width={16} height={16} />
               </Pressable>
             </>
           )}
@@ -155,29 +160,53 @@ export default function ActivityScreen() {
       <ScreenHeader title="활동 관리" />
 
       <View style={styles.toolbar}>
-        <Pressable
-          style={styles.addBtn}
-          onPress={() => setShowAddModal(true)}
-        >
-          <Text style={styles.addBtnText}>+ 활동 추가</Text>
-        </Pressable>
-        <Pressable
-          style={styles.sortBtn}
-          onPress={() =>
-            setSortMode((m) => (m === "recent" ? "count" : "recent"))
-          }
-        >
-          <Text style={styles.sortText}>
-            {sortMode === "recent" ? "최근 사용순" : "사용 횟수순"}
-          </Text>
+        <View style={styles.chipRow}>
+          <Pressable
+            style={[
+              styles.chip,
+              sortMode === "recent" ? styles.chipActive : styles.chipInactive,
+            ]}
+            onPress={() => setSortMode("recent")}
+          >
+            <Text
+              style={[
+                styles.chipText,
+                sortMode === "recent"
+                  ? styles.chipTextActive
+                  : styles.chipTextInactive,
+              ]}
+            >
+              최근 사용 순
+            </Text>
+          </Pressable>
+          <Pressable
+            style={[
+              styles.chip,
+              sortMode === "count" ? styles.chipActive : styles.chipInactive,
+            ]}
+            onPress={() => setSortMode("count")}
+          >
+            <Text
+              style={[
+                styles.chipText,
+                sortMode === "count"
+                  ? styles.chipTextActive
+                  : styles.chipTextInactive,
+              ]}
+            >
+              사용 횟수 순
+            </Text>
+          </Pressable>
+        </View>
+        <Pressable style={styles.addBtn} onPress={() => setShowAddModal(true)}>
+          <PlusIcon width={13} height={13} color={Colors.white} />
         </Pressable>
       </View>
 
+      <Text style={styles.activityCount}>{activities.length}개의 활동</Text>
+
       {isLoading ? (
-        <ActivityIndicator
-          color={Colors.white}
-          style={{ marginTop: 40 }}
-        />
+        <ActivityIndicator color={Colors.white} style={{ marginTop: 40 }} />
       ) : (
         <FlatList
           data={activities}
@@ -190,10 +219,9 @@ export default function ActivityScreen() {
         />
       )}
 
-      <AddActivityModal
-        visible={showAddModal}
-        onClose={() => setShowAddModal(false)}
-      />
+      {showAddModal && (
+        <AddActivityModal onClose={() => setShowAddModal(false)} />
+      )}
     </SafeAreaView>
   );
 }
@@ -206,30 +234,56 @@ const styles = StyleSheet.create({
   },
   toolbar: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingTop: 12,
   },
-  addBtn: {
+  chipRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  chip: {
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: Colors.point.coral,
+    borderRadius: 16,
+    borderWidth: 1,
   },
-  addBtnText: {
-    color: Colors.white,
-    fontSize: 13,
-    fontFamily: "A2Z-SemiBold",
-  },
-  sortBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+  chipActive: {
     backgroundColor: Colors.black.light,
+    borderColor: Colors.white,
   },
-  sortText: {
-    color: Colors.text.light,
-    fontSize: 13,
+  chipInactive: {
+    borderColor: Colors.text.dark,
+  },
+  chipText: {
+    fontSize: 12,
+    fontFamily: "A2Z-Regular",
+  },
+  chipTextActive: {
+    color: Colors.white,
+  },
+  chipTextInactive: {
+    color: Colors.text.dark,
+  },
+  addBtn: {
+    width: 53,
+    height: 30,
+    borderRadius: 14,
+    backgroundColor: Colors.black.light,
+    borderWidth: 1,
+    borderColor: Colors.white,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  activityCount: {
+    color: Colors.white,
+    fontSize: 12,
+    fontFamily: "A2Z-Regular",
+    paddingHorizontal: 20,
+    marginTop: 16,
+    marginBottom: 4,
+    marginLeft: 2,
   },
   listContent: {
     paddingHorizontal: 20,
@@ -238,28 +292,29 @@ const styles = StyleSheet.create({
   itemContainer: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
-    borderBottomWidth: 0.5,
-    borderBottomColor: Colors.black.light,
+    height: 68,
   },
   itemInfo: {
     flex: 1,
   },
   itemName: {
     color: Colors.white,
-    fontSize: 15,
-    marginBottom: 2,
+    fontSize: 16,
+    fontFamily: "A2Z-Regular",
+    marginBottom: 4,
   },
-  itemMeta: {
-    color: Colors.text.mid,
+  itemLastUsed: {
+    color: Colors.text.light,
     fontSize: 12,
+    fontFamily: "A2Z-Regular",
   },
   editInput: {
     height: 36,
     borderBottomWidth: 1,
     borderBottomColor: Colors.text.dark,
     color: Colors.white,
-    fontSize: 15,
+    fontSize: 16,
+    fontFamily: "A2Z-Regular",
     paddingVertical: 0,
   },
   editInputError: {
@@ -267,24 +322,46 @@ const styles = StyleSheet.create({
   },
   itemActions: {
     flexDirection: "row",
-    gap: 8,
+    alignItems: "center",
+    gap: 6,
   },
-  actionBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-  },
-  actionText: {
-    color: Colors.text.light,
+  usageCount: {
+    color: Colors.white,
     fontSize: 13,
+    fontFamily: "A2Z-Regular",
+    marginRight: 4,
   },
-  actionConfirm: {
-    color: Colors.point.coral,
+  iconBtnEdit: {
+    width: 28,
+    height: 28,
+    borderRadius: 99,
+    backgroundColor: Colors.black.light,
+    borderWidth: 1,
+    borderColor: Colors.white,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  iconBtnDelete: {
+    width: 28,
+    height: 28,
+    borderRadius: 99,
+    borderWidth: 1,
+    borderColor: Colors.point.coral,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  confirmBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 14,
+    backgroundColor: Colors.black.light,
+    borderWidth: 1,
+    borderColor: Colors.white,
+  },
+  confirmText: {
+    color: Colors.white,
     fontSize: 13,
     fontFamily: "A2Z-SemiBold",
-  },
-  actionDelete: {
-    color: Colors.point.coral,
-    fontSize: 13,
   },
   emptyText: {
     color: Colors.text.mid,
