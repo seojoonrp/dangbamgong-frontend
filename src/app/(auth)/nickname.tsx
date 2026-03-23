@@ -102,8 +102,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.black.dark,
     paddingHorizontal: 40,
-    justifyContent: "flex-end",
-    paddingBottom: 200,
+    justifyContent: "center",
+    paddingBottom: 20,
   },
   imageContainer: {
     alignItems: "center",

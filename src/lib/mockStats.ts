@@ -56,6 +56,9 @@ export const MOCK_DAILY_STATS: DailyStatResponse = {
       activities: [],
     },
   ],
+  myTotalDurationSec: 9120,
+  totalSleptUsers: 209,
+  allTotalDurationSec: 1811520,
 };
 
 export const MOCK_VOID_HISTORY: VoidHistoryResponse = {

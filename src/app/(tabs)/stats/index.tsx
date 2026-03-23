@@ -18,7 +18,7 @@ import { MOCK_DAILY_STATS } from "../../../lib/mockStats";
 import LoadingView from "../../../components/shared/LoadingView";
 
 const MIN_DATE = "2026-03-20"; // 앱 출시일
-const USE_MOCK = true; // TODO: 실제 데이터가 충분해지면 false로 변경
+const USE_MOCK = false; // TODO: 실제 데이터가 충분해지면 false로 변경
 
 export default function StatsScreen() {
   const insets = useSafeAreaInsets();
@@ -52,7 +52,11 @@ export default function StatsScreen() {
             <Timetable sessions={stats?.mySessions ?? []} />
           </View>
 
-          <StatsText />
+          <StatsText
+            myTotalDurationSec={stats?.myTotalDurationSec ?? 0}
+            totalSleptUsers={stats?.totalSleptUsers ?? 0}
+            allTotalDurationSec={stats?.allTotalDurationSec ?? 0}
+          />
         </View>
       )}
     </View>

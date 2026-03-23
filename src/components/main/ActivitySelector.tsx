@@ -51,15 +51,16 @@ export default function ActivitySelector({
 
 const styles = StyleSheet.create({
   container: {
+    maxWidth: "60%",
     paddingTop: 12,
-    paddingHorizontal: 20,
     flexDirection: "row",
     gap: 6,
     alignItems: "center",
   },
   wrapContent: {
-    maxWidth: "60%",
     flexDirection: "row",
+    flexGrow: 0,
+    flexShrink: 1,
     overflow: "hidden",
   },
   scrollContent: {

@@ -112,7 +112,7 @@ export default function FriendsScreen() {
             ItemSeparatorComponent={() => <View style={styles.separator} />}
             ListEmptyComponent={
               <Text style={styles.emptyText}>
-                아직 친구가 없어요. 친구를 추가해보세요!
+                아직 친구가 없어요.{"\n"}+ 를 눌러 친구를 추가해보세요!
               </Text>
             }
           />
@@ -299,6 +299,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: "A2Z-Regular",
     textAlign: "center",
+    lineHeight: 20,
     marginTop: 200,
   },
 });

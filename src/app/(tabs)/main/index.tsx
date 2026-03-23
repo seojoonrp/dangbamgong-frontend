@@ -5,7 +5,7 @@ import { router } from "expo-router";
 import { Colors } from "../../../constants/colors";
 import { Layout } from "../../../constants/layout";
 import TabHeader from "../../../components/navigation/TabHeader";
-import VoidSwipeArea from "../../../components/main/VoidSwipeArea";
+import VoidTouchArea from "../../../components/main/VoidTouchArea";
 import HomeStatsBar from "../../../components/main/HomeStatsBar";
 import ActivitySelector from "../../../components/main/ActivitySelector";
 import AddActivityCard from "../../../components/main/AddActivityModal";
@@ -157,17 +157,17 @@ export default function MainScreen() {
       <View style={styles.content}>
         {/* awake 상태 */}
         {voidState === "awake" && (
-          <VoidSwipeArea direction="down" onSwipeComplete={handleStartVoid}>
+          <VoidTouchArea mode="tap" onAction={handleStartVoid}>
             {renderStateImage()}
             <Text style={styles.hintText}>
-              공백을 시작하려면 아래로 스와이프하세요.
+              공백을 시작하려면 아무 곳이나 누르세요.
             </Text>
-          </VoidSwipeArea>
+          </VoidTouchArea>
         )}
 
         {/* inVoid 상태 */}
         {voidState === "inVoid" && (
-          <VoidSwipeArea direction="up" onSwipeComplete={handleEndVoid}>
+          <VoidTouchArea mode="longPress" onAction={handleEndVoid}>
             {renderStateImage()}
             <Text style={styles.activityLabel}>공백 동안 무엇을 했나요?</Text>
             <ActivitySelector
@@ -175,23 +175,21 @@ export default function MainScreen() {
               onToggle={handleToggleActivity}
               onAddPress={() => setShowAddCard(true)}
             />
-            <Text style={styles.hintText}>
-              공백을 끝내려면 위로 스와이프하세요.
-            </Text>
+            <Text style={styles.hintText}>공백을 끝내려면 꾹 누르세요.</Text>
             <Pressable style={styles.cancelButton} onPress={handleCancelVoid}>
               <Text style={styles.cancelText}>공백 취소하기</Text>
             </Pressable>
-          </VoidSwipeArea>
+          </VoidTouchArea>
         )}
 
         {/* ended 상태 */}
         {voidState === "ended" && (
-          <VoidSwipeArea direction="down" onSwipeComplete={handleStartVoid}>
+          <VoidTouchArea mode="tap" onAction={handleStartVoid}>
             {renderStateImage()}
             <Text style={styles.hintText}>
-              다시 공백을 시작하려면 아래로 스와이프하세요.
+              다시 공백을 시작하려면 아무 곳이나 누르세요.
             </Text>
-          </VoidSwipeArea>
+          </VoidTouchArea>
         )}
       </View>
 
@@ -227,7 +225,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingBottom: 40,
   },
   hintText: {
     color: Colors.white,

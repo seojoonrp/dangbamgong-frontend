@@ -6,9 +6,6 @@ import { useMyStats } from "../../../hooks/useStats";
 import { formatDuration } from "../../../lib/dateUtils";
 import LoadingView from "../../../components/shared/LoadingView";
 
-// TODO: 가장 긴 공백 날짜 받아오기
-const LONGEST_VOID_DATE = "2026.03.07";
-
 export default function StatDetailScreen() {
   const { data, isLoading } = useMyStats();
 
@@ -29,14 +26,16 @@ export default function StatDetailScreen() {
         <View style={styles.row}>
           <Text style={styles.label}>평균 공백 시간</Text>
           <Text style={styles.value}>
-            {formatDuration(data?.averageDurationSec ?? 0)}
+            {data?.totalDurationSec ? formatDuration(data.averageDurationSec) : "-"}
           </Text>
         </View>
 
         <View style={styles.row}>
           <Text style={styles.label}>가장 긴 공백</Text>
           <Text style={styles.value}>
-            {formatDuration(data?.maxDurationSec ?? 0)} ({LONGEST_VOID_DATE})
+            {data?.totalDurationSec
+              ? `${formatDuration(data.maxDurationSec)} (${data.maxDurationDate})`
+              : "-"}
           </Text>
         </View>
       </View>

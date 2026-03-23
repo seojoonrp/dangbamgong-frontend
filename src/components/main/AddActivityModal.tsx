@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,13 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  runOnJS,
+  Easing,
+} from "react-native-reanimated";
 import { Colors } from "../../constants/colors";
 import { useCreateActivity, useActivities } from "../../hooks/useActivities";
 
@@ -22,11 +29,32 @@ export default function AddActivityCard({ onClose }: Props) {
   const { data } = useActivities();
   const createMutation = useCreateActivity();
 
+  const translateY = useSharedValue(300);
+  const overlayOpacity = useSharedValue(0);
+
   const existingNames = (data?.activities ?? []).map((a) => a.name);
   const isDuplicate = existingNames.includes(name.trim());
   const isValidLength = name.trim().length >= 1 && name.trim().length <= 10;
   const isValid = isValidLength && !isDuplicate;
   const showError = touched && !isValid;
+
+  useEffect(() => {
+    translateY.value = withTiming(0, {
+      duration: 300,
+      easing: Easing.out(Easing.cubic),
+    });
+    overlayOpacity.value = withTiming(1, { duration: 300 });
+  }, []);
+
+  const close = () => {
+    translateY.value = withTiming(300, {
+      duration: 250,
+      easing: Easing.in(Easing.cubic),
+    });
+    overlayOpacity.value = withTiming(0, { duration: 250 }, () => {
+      runOnJS(onClose)();
+    });
+  };
 
   const handleSubmit = async () => {
     if (!isValid) return;
@@ -34,17 +62,30 @@ export default function AddActivityCard({ onClose }: Props) {
       await createMutation.mutateAsync(name.trim());
       setName("");
       setTouched(false);
-      onClose();
+      close();
     } catch {}
   };
 
+  const overlayStyle = useAnimatedStyle(() => ({
+    opacity: overlayOpacity.value,
+  }));
+
+  const cardStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
   return (
-    <Pressable style={styles.overlay} onPress={onClose}>
+    <View style={styles.container}>
+      <Animated.View style={[styles.overlay, overlayStyle]}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={close} />
+      </Animated.View>
+
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardView}
+        pointerEvents="box-none"
       >
-        <Pressable style={styles.card}>
+        <Animated.View style={[styles.card, cardStyle]}>
           <Text style={styles.title}>추가할 활동의 이름을 입력해주세요.</Text>
           <TextInput
             style={[styles.input, showError && styles.inputError]}
@@ -56,13 +97,15 @@ export default function AddActivityCard({ onClose }: Props) {
             maxLength={10}
             autoFocus
           />
-          {showError && (
-            <Text style={styles.errorText}>
-              {isDuplicate
-                ? "이미 존재하는 활동입니다."
-                : "활동 이름은 1~10자여야 합니다."}
-            </Text>
-          )}
+          <View style={styles.errorRow}>
+            {showError && (
+              <Text style={styles.errorText}>
+                {isDuplicate
+                  ? "이미 존재하는 활동입니다."
+                  : "활동 이름을 입력해주세요."}
+              </Text>
+            )}
+          </View>
           <View style={styles.buttonRow}>
             <Pressable
               style={[
@@ -79,19 +122,22 @@ export default function AddActivityCard({ onClose }: Props) {
               )}
             </Pressable>
           </View>
-        </Pressable>
+        </Animated.View>
       </KeyboardAvoidingView>
-    </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
+  container: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 10,
-    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.5)",
   },
   keyboardView: {
     width: "100%",
@@ -121,21 +167,23 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: 14,
     fontFamily: "A2Z-Regular",
-    marginBottom: 8,
   },
   inputError: {
     borderBottomColor: Colors.point.coral,
+  },
+  errorRow: {
+    height: 28,
+    justifyContent: "center",
   },
   errorText: {
     color: Colors.point.coral,
     fontSize: 11,
     fontFamily: "A2Z-Regular",
-    marginBottom: 8,
   },
   buttonRow: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    marginTop: 8,
+    marginTop: 4,
   },
   submitBtn: {
     paddingHorizontal: 14,

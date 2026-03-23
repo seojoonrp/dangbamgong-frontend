@@ -3,9 +3,9 @@ import type { VoidSessionItem } from "./void";
 export interface HomeStatResponse {
   currentVoidCount: number;
   todaySleptCount: number;
-  totalSleptUsers: number;
-  myRank: number;
-  myTotalDurationSec: number;
+  totalSleptUsers: number | null;
+  myRank: number | null;
+  myTotalDurationSec: number | null;
 }
 
 export interface BucketItem {
@@ -18,10 +18,14 @@ export interface DailyStatResponse {
   targetDay: string;
   buckets: BucketItem[];
   mySessions: VoidSessionItem[];
+  myTotalDurationSec: number;
+  totalSleptUsers: number;
+  allTotalDurationSec: number;
 }
 
 export interface MyVoidStatResponse {
   totalDurationSec: number;
   averageDurationSec: number;
   maxDurationSec: number;
+  maxDurationDate: string;
 }

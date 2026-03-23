@@ -49,11 +49,11 @@ export default function HomeStatsBar({
       return (
         <>
           <Text style={styles.stat}>
-            어젯밤 {formatDuration(homeStats.myTotalDurationSec)}의 공백을
+            어젯밤 {formatDuration(homeStats.myTotalDurationSec ?? 0)}의 공백을
             보냈어요.
           </Text>
           <Text style={styles.statSub}>
-            {homeStats.totalSleptUsers}명 중 {homeStats.myRank}번째로 긴
+            {homeStats.totalSleptUsers ?? 0}명 중 {homeStats.myRank ?? 0}번째로 긴
             공백이었습니다.
           </Text>
         </>
