@@ -4,26 +4,59 @@
     "slug": "dangbamgong",
     "scheme": "dangbamgong",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "orientation": "portrait",
     "icon": "./assets/app-icon.png",
     "userInterfaceStyle": "dark",
+    "platforms": ["ios"],
     "ios": {
       "bundleIdentifier": "com.seojoonrp.dangbamgong",
+      "usesAppleSignIn": true,
       "supportsTablet": true,
       "splash": {
         "image": "./assets/splash-icon.png",
         "resizeMode": "contain",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#111112"
       },
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.588529751971-f87tfva1pfpc62rcdlr2ednq5ct85vqc",
+              "kakao530e24f8a651a9b1f408a12044cdc1ef"
+            ]
+          }
+        ]
       }
     },
     "plugins": [
       "expo-router",
       "expo-font",
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-apple-authentication",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.588529751971-f87tfva1pfpc62rcdlr2ednq5ct85vqc"
+        }
+      ],
+      [
+        "@react-native-seoul/kakao-login",
+        {
+          "kakaoAppKey": "530e24f8a651a9b1f408a12044cdc1ef"
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/app-icon.png",
+          "color": "#ffffff"
+        }
+      ]
     ],
     "extra": {
       "router": {},
