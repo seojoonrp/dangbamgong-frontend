@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
+    "@gorhom/portal": "^1.0.14",
     "@tanstack/react-query": "^5.90.21",
     "axios": "^1.13.6",
     "expo": "~54.0.0",

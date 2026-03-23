@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "dangbamgong",
+    "name": "당밤공",
     "slug": "dangbamgong",
     "scheme": "dangbamgong",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "icon": "./assets/app-icon.png",
+    "userInterfaceStyle": "dark",
     "ios": {
       "bundleIdentifier": "com.seojoonrp.dangbamgong",
       "supportsTablet": true,
