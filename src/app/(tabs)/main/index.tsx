@@ -17,6 +17,7 @@ import AwakeImage from "../../../../assets/images/awake.svg";
 import VoidImage from "../../../../assets/images/void.svg";
 import SleepImage from "../../../../assets/images/sleep.svg";
 import { useMe } from "../../../hooks/useUser";
+import { useActivities } from "../../../hooks/useActivities";
 import {
   useStartVoid,
   useEndVoid,
@@ -32,6 +33,7 @@ type VoidState = "awake" | "inVoid" | "ended";
 
 export default function MainScreen() {
   const { data: user } = useMe();
+  useActivities(); // 활동 목록 프리페치
   const isInVoid = user?.isInVoid ?? false;
   const [justEnded, setJustEnded] = useState(false);
   const [endResult, setEndResult] = useState<VoidEndResponse | null>(null);

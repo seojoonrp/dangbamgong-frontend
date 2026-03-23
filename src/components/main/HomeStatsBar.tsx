@@ -20,7 +20,8 @@ export default function HomeStatsBar({
   hasVoidHistory,
 }: Props) {
   const renderContent = () => {
-    if (voidState === "ended" && endResult) {
+    if (voidState === "ended") {
+      if (!endResult) return null; // endResult 도착 전 flicker 방지
       return (
         <>
           <Text style={styles.stat}>

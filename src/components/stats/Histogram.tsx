@@ -41,7 +41,7 @@ export default function Histogram({ buckets, isToday }: Props) {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { width: buckets.length * BAR_TOTAL },
+          { width: buckets.length * BAR_TOTAL + 16 },
         ]}
       >
         <View style={styles.barsContainer}>
@@ -229,8 +229,11 @@ const styles = StyleSheet.create({
     borderTopColor: Colors.white,
     borderTopWidth: 1,
     paddingTop: 3,
+    height: 12,
   },
   xLabel: {
+    position: "absolute",
+    top: 1,
     color: Colors.white,
     fontSize: 10,
     fontFamily: "A2Z-Light",
