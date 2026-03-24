@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
 import { Colors } from "../../../constants/colors";
 import TabHeader from "../../../components/navigation/TabHeader";
 import SettingsIcon from "../../../../assets/icons/header/settings.svg";
@@ -50,14 +51,16 @@ const accountItems: MenuItem[] = [
   },
 ];
 
+const TERMS_URL =
+  "https://pushy-billboard-69f.notion.site/319feaa4f65880828bffeb89b933d543";
+
 const appItems: MenuItem[] = [
   { label: "앱 버전", icon: VersionIcon, rightText: "v1.0.0" },
   {
     label: "서비스 이용 약관",
     icon: TermsIcon,
     onPress: () => {
-      // TODO: 실제 약관 페이지 웹뷰 띄우면 좋을듯~
-      Alert.alert("서비스 이용 약관", "서비스이용약관임");
+      WebBrowser.openBrowserAsync(TERMS_URL);
     },
   },
   {

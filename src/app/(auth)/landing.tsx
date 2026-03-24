@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
 import { Colors } from "../../constants/colors";
 import { loginTest } from "../../api/services/auth";
 import { useAuth } from "../../lib/AuthContext";
@@ -19,6 +20,9 @@ import AppleIcon from "../../../assets/icons/brand/apple.svg";
 
 const COMING_SOON_TITLE = "준비 중";
 const COMING_SOON_MSG = "아직 구현되지 않은 기능입니다.";
+
+const TERMS_URL =
+  "https://pushy-billboard-69f.notion.site/319feaa4f65880828bffeb89b933d543";
 
 export default function LandingScreen() {
   const [loading, setLoading] = useState(false);
@@ -71,7 +75,7 @@ export default function LandingScreen() {
       {/* 콘텐츠 + 버튼 영역 (세로 가운데) */}
       <View style={styles.centerArea}>
         <View style={styles.content}>
-          <VoidImage width={230} height={131} />
+          <VoidImage width={230} height={131} color={Colors.white} />
           <Text style={styles.title}>당밤공</Text>
           <Text style={styles.subtitle}>
             <Text style={styles.boldText}>당</Text>
@@ -112,7 +116,7 @@ export default function LandingScreen() {
       </View>
 
       {/* 이용약관 */}
-      <Pressable onPress={handleComingSoon}>
+      <Pressable onPress={() => WebBrowser.openBrowserAsync(TERMS_URL)}>
         <Text style={styles.terms}>
           <Text>로그인하면 </Text>
           <Text style={styles.termsLink}>서비스 이용약관</Text>
