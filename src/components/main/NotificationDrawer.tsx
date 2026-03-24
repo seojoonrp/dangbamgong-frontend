@@ -14,15 +14,14 @@ import Animated, {
   runOnJS,
 } from "react-native-reanimated";
 import { Colors } from "../../constants/colors";
-import {
-  useNotifications,
-  useMarkAsRead,
-} from "../../hooks/useNotifications";
+import { useNotifications, useMarkAsRead } from "../../hooks/useNotifications";
 import { formatRelativeTime } from "../../lib/dateUtils";
 import type { NotificationItem } from "../../types/dto/notifications";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import BellIcon from "../../../assets/icons/header/notifications.svg";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const DRAWER_WIDTH = SCREEN_WIDTH * 0.85;
+const DRAWER_WIDTH = SCREEN_WIDTH * 0.75;
 
 interface Props {
   visible: boolean;
@@ -34,6 +33,8 @@ export default function NotificationDrawer({ visible, onClose }: Props) {
   const [shouldRender, setShouldRender] = useState(false);
   const { data } = useNotifications();
   const markAsRead = useMarkAsRead();
+
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (visible) setShouldRender(true);
@@ -51,8 +52,7 @@ export default function NotificationDrawer({ visible, onClose }: Props) {
   }));
 
   const backdropStyle = useAnimatedStyle(() => {
-    const progress =
-      (SCREEN_WIDTH - translateX.value) / DRAWER_WIDTH;
+    const progress = (SCREEN_WIDTH - translateX.value) / DRAWER_WIDTH;
     return { opacity: progress * 0.5 };
   });
 
@@ -80,12 +80,20 @@ export default function NotificationDrawer({ visible, onClose }: Props) {
   if (!shouldRender) return null;
 
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents={visible ? "auto" : "none"}>
+    <View
+      style={StyleSheet.absoluteFill}
+      pointerEvents={visible ? "auto" : "none"}
+    >
       <Animated.View style={[styles.backdrop, backdropStyle]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
       </Animated.View>
-      <Animated.View style={[styles.drawer, drawerStyle]}>
-        <Text style={styles.drawerTitle}>알림</Text>
+      <Animated.View
+        style={[styles.drawer, drawerStyle, { paddingTop: insets.top }]}
+      >
+        <View style={styles.drawerTitleContainer}>
+          <BellIcon width={32} height={32} color={Colors.white} />
+          <Text style={styles.drawerTitle}>알림</Text>
+        </View>
         <FlatList
           data={data?.notifications ?? []}
           keyExtractor={(item) => item.id}
@@ -111,14 +119,20 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: DRAWER_WIDTH,
     backgroundColor: Colors.black.mid,
-    paddingTop: 60,
+  },
+  drawerTitleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingLeft: 14,
+    paddingTop: 12,
+    paddingBottom: 12,
+    gap: 0,
   },
   drawerTitle: {
     color: Colors.white,
     fontSize: 20,
     fontFamily: "A2Z-SemiBold",
-    paddingHorizontal: 20,
-    marginBottom: 16,
+    marginTop: -1,
   },
   listContent: {
     paddingHorizontal: 20,
@@ -143,16 +157,19 @@ const styles = StyleSheet.create({
   },
   notifTime: {
     color: Colors.text.mid,
-    fontSize: 12,
+    fontSize: 13,
+    fontFamily: "A2Z-Regular",
   },
   notifBody: {
     color: Colors.white,
-    fontSize: 14,
+    fontSize: 12,
+    fontFamily: "A2Z-Regular",
     lineHeight: 20,
   },
   emptyText: {
     color: Colors.text.mid,
     fontSize: 14,
+    fontFamily: "A2Z-Regular",
     textAlign: "center",
     marginTop: 40,
   },
