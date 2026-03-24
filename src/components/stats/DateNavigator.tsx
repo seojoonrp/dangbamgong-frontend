@@ -36,7 +36,7 @@ export default function DateNavigator({
         />
       </Pressable>
 
-      <Text style={styles.dateText}>{formatDisplayDate(currentDay)}</Text>
+      <Text style={styles.dateText}>{formatDisplayDate(currentDay)} 밤</Text>
 
       <Pressable
         onPress={() => canNext && onDayChange(addDays(currentDay, 1))}
