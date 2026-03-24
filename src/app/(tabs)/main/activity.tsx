@@ -24,6 +24,7 @@ import {
 } from "../../../hooks/useActivities";
 import { formatRelativeTime } from "../../../lib/dateUtils";
 import type { ActivityItem } from "../../../types/dto/activities";
+import LoadingView from "../../../components/shared/LoadingView";
 
 type SortMode = "recent" | "count";
 
@@ -96,6 +97,16 @@ export default function ActivityScreen() {
     );
   };
 
+  const isEditSubmittable = (originalName: string) => {
+    const trimmed = editName.trim();
+    return (
+      trimmed.length >= 1 &&
+      trimmed.length <= 10 &&
+      trimmed !== originalName &&
+      !existingNames.includes(trimmed)
+    );
+  };
+
   const renderItem = ({ item }: { item: ActivityItem }) => {
     const isEditing = editingId === item.id;
 
@@ -128,10 +139,21 @@ export default function ActivityScreen() {
         <View style={styles.itemActions}>
           {isEditing ? (
             <Pressable
-              style={styles.confirmBtn}
+              style={[
+                styles.confirmBtn,
+                !isEditSubmittable(item.name) && styles.confirmBtnDisabled,
+              ]}
               onPress={() => handleSaveEdit(item.id, item.name)}
+              disabled={!isEditSubmittable(item.name)}
             >
-              <Text style={styles.confirmText}>확인</Text>
+              <Text
+                style={[
+                  styles.confirmText,
+                  !isEditSubmittable(item.name) && styles.confirmTextDisabled,
+                ]}
+              >
+                확인
+              </Text>
             </Pressable>
           ) : (
             <>
@@ -206,7 +228,7 @@ export default function ActivityScreen() {
       <Text style={styles.activityCount}>{activities.length}개의 활동</Text>
 
       {isLoading ? (
-        <ActivityIndicator color={Colors.white} style={{ marginTop: 40 }} />
+        <LoadingView />
       ) : (
         <FlatList
           data={activities}
@@ -316,6 +338,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "A2Z-Regular",
     paddingVertical: 0,
+    marginRight: 12,
   },
   editInputError: {
     borderBottomColor: Colors.point.coral,
@@ -358,10 +381,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.white,
   },
+  confirmBtnDisabled: {
+    borderColor: Colors.text.dark,
+    opacity: 0.4,
+    backgroundColor: Colors.black.dark,
+  },
   confirmText: {
     color: Colors.white,
     fontSize: 13,
-    fontFamily: "A2Z-SemiBold",
+    fontFamily: "A2Z-Regular",
+  },
+  confirmTextDisabled: {
+    color: Colors.text.dark,
   },
   emptyText: {
     color: Colors.text.mid,

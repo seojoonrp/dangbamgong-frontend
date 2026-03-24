@@ -16,7 +16,7 @@
       "usesAppleSignIn": true,
       "supportsTablet": true,
       "splash": {
-        "image": "./assets/splash-icon.png",
+        "image": "./assets/splash.png",
         "resizeMode": "contain",
         "backgroundColor": "#111112"
       },
