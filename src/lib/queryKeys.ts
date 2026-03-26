@@ -20,6 +20,7 @@ export const queryKeys = {
     list: () => ["friends", "list"] as const,
     requests: (type: FriendRequestType) =>
       ["friends", "requests", type] as const,
+    unreadRequestCount: () => ["friends", "requests", "unread-count"] as const,
   },
   notifications: {
     list: () => ["notifications"] as const,

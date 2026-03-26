@@ -32,3 +32,7 @@ export interface ReceivedRequestItem {
 export interface ReceivedRequestsResponse {
   requests: ReceivedRequestItem[];
 }
+
+export interface UnreadRequestCountResponse {
+  count: number;
+}

@@ -4,6 +4,7 @@ import type {
   FriendRequestType,
   SendFriendRequestResponse,
   ReceivedRequestsResponse,
+  UnreadRequestCountResponse,
 } from "../../types/dto/friends";
 
 export async function getFriends(): Promise<FriendListResponse> {
@@ -26,21 +27,15 @@ export async function getFriendRequests(
   });
 }
 
-export async function acceptFriendRequest(
-  requestId: string,
-): Promise<void> {
+export async function acceptFriendRequest(requestId: string): Promise<void> {
   await client.post(`/friends/requests/${requestId}/accept`);
 }
 
-export async function rejectFriendRequest(
-  requestId: string,
-): Promise<void> {
+export async function rejectFriendRequest(requestId: string): Promise<void> {
   await client.post(`/friends/requests/${requestId}/reject`);
 }
 
-export async function deleteFriendRequest(
-  requestId: string,
-): Promise<void> {
+export async function deleteFriendRequest(requestId: string): Promise<void> {
   await client.delete(`/friends/requests/${requestId}`);
 }
 
@@ -50,4 +45,14 @@ export async function removeFriend(userId: string): Promise<void> {
 
 export async function nudgeFriend(userId: string): Promise<void> {
   await client.post(`/friends/${userId}/nudge`);
+}
+
+export async function getUnreadRequestCount(): Promise<UnreadRequestCountResponse> {
+  return client.get<never, UnreadRequestCountResponse>(
+    "/friends/requests/unread-count",
+  );
+}
+
+export async function markRequestsAsRead(): Promise<void> {
+  await client.patch("/friends/requests/read");
 }

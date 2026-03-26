@@ -20,18 +20,17 @@ function offsetToHour(offset: number): number {
   return (16 + offset) % 24;
 }
 
-// 특정 시간이 세션과 겹치는지 확인
+// 특정 시간 라인이 세션 내부에 있는지 확인
 function isHourInSession(
   hourOffset: number,
   sessions: VoidSessionItem[],
 ): boolean {
+  const hourMinute = hourOffset * 60;
   for (const session of sessions) {
     const startOffset = toMinuteOffset(session.startedAt);
     const endOffset = toMinuteOffset(session.endedAt);
-    const hourStart = hourOffset * 60;
-    const hourEnd = (hourOffset + 1) * 60;
-    // 세션과 시간대가 겹치면 true
-    if (startOffset < hourEnd && endOffset > hourStart) {
+    // 시간 라인이 세션 시작과 끝 사이에 있을 때만 true
+    if (startOffset < hourMinute && endOffset > hourMinute) {
       return true;
     }
   }
@@ -114,6 +113,8 @@ export default function Timetable({ sessions }: Props) {
             ((endOffset - startOffset) / 60) * HOUR_HEIGHT,
             4,
           );
+          const durationMin = endOffset - startOffset;
+          const isLongSession = durationMin >= 60;
           const watermarkLines = formatWatermark(
             session.startedAt,
             session.endedAt,
@@ -127,27 +128,31 @@ export default function Timetable({ sessions }: Props) {
                 { top, height, left: TIMELINE_LEFT, right: 0 },
               ]}
             >
-              {/* 워터마크 텍스트 */}
-              <View style={styles.watermarkContainer}>
-                {watermarkLines.map((line, j) => (
-                  <Text
-                    key={j}
-                    style={styles.watermarkText}
-                    allowFontScaling={false}
-                  >
-                    {line}
-                  </Text>
-                ))}
-              </View>
+              {isLongSession && (
+                <>
+                  {/* 워터마크 텍스트 */}
+                  <View style={styles.watermarkContainer}>
+                    {watermarkLines.map((line, j) => (
+                      <Text
+                        key={j}
+                        style={styles.watermarkText}
+                        allowFontScaling={false}
+                      >
+                        {line}
+                      </Text>
+                    ))}
+                  </View>
 
-              {/* 일러스트 */}
-              <View style={styles.illustrationContainer}>
-                <VoidIllustration
-                  width={248}
-                  height={140}
-                  color={Colors.point.coral}
-                />
-              </View>
+                  {/* 일러스트 */}
+                  <View style={styles.illustrationContainer}>
+                    <VoidIllustration
+                      width={248}
+                      height={140}
+                      color={Colors.point.coral}
+                    />
+                  </View>
+                </>
+              )}
 
               {/* 코랄 스트립 (오른쪽 끝) */}
               <View style={styles.coralStrip} />

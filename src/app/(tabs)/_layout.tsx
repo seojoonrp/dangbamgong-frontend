@@ -1,8 +1,14 @@
+import { useEffect } from "react";
 import { Tabs } from "expo-router";
 
 import BottomTab from "../../components/navigation/BottomTab";
+import { requestPushPermissionAndRegister } from "../../lib/pushNotifications";
 
 export default function TabsLayout() {
+  useEffect(() => {
+    requestPushPermissionAndRegister();
+  }, []);
+
   return (
     <Tabs
       tabBar={(props) => <BottomTab {...props} />}

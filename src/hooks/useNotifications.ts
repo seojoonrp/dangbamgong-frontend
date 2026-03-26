@@ -4,6 +4,9 @@ import {
   getNotifications,
   getUnreadCount,
   markAsRead,
+  markAllAsRead,
+  deleteNotification,
+  deleteAllRead,
 } from "../api/services/notifications";
 import type { NotificationListResponse } from "../types/dto/notifications";
 
@@ -42,6 +45,137 @@ export function useMarkAsRead() {
                 notifications: old.notifications.map((n) =>
                   n.id === notificationId ? { ...n, isRead: true } : n,
                 ),
+              }
+            : old,
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(
+          queryKeys.notifications.list(),
+          context.previous,
+        );
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.list(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.unread(),
+      });
+    },
+  });
+}
+
+export function useMarkAllAsRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: markAllAsRead,
+    onMutate: async () => {
+      await queryClient.cancelQueries({
+        queryKey: queryKeys.notifications.list(),
+      });
+      const previous = queryClient.getQueryData<NotificationListResponse>(
+        queryKeys.notifications.list(),
+      );
+      queryClient.setQueryData<NotificationListResponse>(
+        queryKeys.notifications.list(),
+        (old) =>
+          old
+            ? {
+                ...old,
+                notifications: old.notifications.map((n) => ({
+                  ...n,
+                  isRead: true,
+                })),
+              }
+            : old,
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(
+          queryKeys.notifications.list(),
+          context.previous,
+        );
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.list(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.unread(),
+      });
+    },
+  });
+}
+
+export function useDeleteNotification() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (notificationId: string) => deleteNotification(notificationId),
+    onMutate: async (notificationId) => {
+      await queryClient.cancelQueries({
+        queryKey: queryKeys.notifications.list(),
+      });
+      const previous = queryClient.getQueryData<NotificationListResponse>(
+        queryKeys.notifications.list(),
+      );
+      queryClient.setQueryData<NotificationListResponse>(
+        queryKeys.notifications.list(),
+        (old) =>
+          old
+            ? {
+                ...old,
+                notifications: old.notifications.filter(
+                  (n) => n.id !== notificationId,
+                ),
+              }
+            : old,
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(
+          queryKeys.notifications.list(),
+          context.previous,
+        );
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.list(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.notifications.unread(),
+      });
+    },
+  });
+}
+
+export function useDeleteAllRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteAllRead,
+    onMutate: async () => {
+      await queryClient.cancelQueries({
+        queryKey: queryKeys.notifications.list(),
+      });
+      const previous = queryClient.getQueryData<NotificationListResponse>(
+        queryKeys.notifications.list(),
+      );
+      queryClient.setQueryData<NotificationListResponse>(
+        queryKeys.notifications.list(),
+        (old) =>
+          old
+            ? {
+                ...old,
+                notifications: old.notifications.filter((n) => !n.isRead),
               }
             : old,
       );

@@ -22,3 +22,15 @@ export async function getUnreadCount(): Promise<UnreadCountResponse> {
 export async function markAsRead(notificationId: string): Promise<void> {
   await client.patch(`/notifications/${notificationId}/read`);
 }
+
+export async function markAllAsRead(): Promise<void> {
+  await client.patch("/notifications/read-all");
+}
+
+export async function deleteNotification(notificationId: string): Promise<void> {
+  await client.delete(`/notifications/${notificationId}`);
+}
+
+export async function deleteAllRead(): Promise<void> {
+  await client.delete("/notifications/read");
+}

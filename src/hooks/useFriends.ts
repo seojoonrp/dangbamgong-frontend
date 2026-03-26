@@ -9,8 +9,14 @@ import {
   deleteFriendRequest,
   removeFriend,
   nudgeFriend,
+  getUnreadRequestCount,
+  markRequestsAsRead,
 } from "../api/services/friends";
-import type { FriendRequestType, FriendListResponse } from "../types/dto/friends";
+import type {
+  FriendRequestType,
+  FriendListResponse,
+  UnreadRequestCountResponse,
+} from "../types/dto/friends";
 
 export function useFriends() {
   return useQuery({
@@ -109,5 +115,46 @@ export function useRemoveFriend() {
 export function useNudgeFriend() {
   return useMutation({
     mutationFn: (userId: string) => nudgeFriend(userId),
+  });
+}
+
+export function useUnreadRequestCount() {
+  return useQuery({
+    queryKey: queryKeys.friends.unreadRequestCount(),
+    queryFn: getUnreadRequestCount,
+    refetchInterval: 60_000,
+  });
+}
+
+export function useMarkRequestsAsRead() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: markRequestsAsRead,
+    onMutate: async () => {
+      await queryClient.cancelQueries({
+        queryKey: queryKeys.friends.unreadRequestCount(),
+      });
+      const previous = queryClient.getQueryData<UnreadRequestCountResponse>(
+        queryKeys.friends.unreadRequestCount(),
+      );
+      queryClient.setQueryData<UnreadRequestCountResponse>(
+        queryKeys.friends.unreadRequestCount(),
+        { count: 0 },
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(
+          queryKeys.friends.unreadRequestCount(),
+          context.previous,
+        );
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.friends.unreadRequestCount(),
+      });
+    },
   });
 }

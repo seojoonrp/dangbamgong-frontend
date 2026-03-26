@@ -53,6 +53,29 @@ export default function MainScreen() {
       ? "ended"
       : "awake";
 
+  // 공백 경과 시간 (1분마다 갱신)
+  const [elapsedMin, setElapsedMin] = useState(0);
+  useEffect(() => {
+    if (!isInVoid || !user?.currentVoidStartedAt) {
+      setElapsedMin(0);
+      return;
+    }
+    const calc = () => {
+      const diff = Date.now() - new Date(user.currentVoidStartedAt).getTime();
+      setElapsedMin(Math.floor(diff / 60000));
+    };
+    calc();
+    const id = setInterval(calc, 60000);
+    return () => clearInterval(id);
+  }, [isInVoid, user?.currentVoidStartedAt]);
+
+  const elapsedLabel =
+    elapsedMin > 0
+      ? elapsedMin >= 60
+        ? `${Math.floor(elapsedMin / 60)}시간 ${elapsedMin % 60}분째 공백 중`
+        : `${elapsedMin}분째 공백 중`
+      : null;
+
   const { data: homeStats } = useHomeStats(isInVoid);
   const { data: unreadData } = useUnreadCount();
   const targetDay = getTargetDay();
@@ -170,6 +193,9 @@ export default function MainScreen() {
         {/* inVoid 상태 */}
         {voidState === "inVoid" && (
           <VoidTouchArea mode="longPress" onAction={handleEndVoid}>
+            {elapsedLabel && (
+              <Text style={styles.elapsedText}>{elapsedLabel}</Text>
+            )}
             {renderStateImage()}
             <Text style={styles.activityLabel}>공백 동안 무엇을 했나요?</Text>
             <ActivitySelector
@@ -258,6 +284,13 @@ const styles = StyleSheet.create({
     bottom: Layout.bottomTabHeight,
     left: 0,
     right: 0,
+  },
+  elapsedText: {
+    color: Colors.white,
+    fontSize: 18,
+    fontFamily: "A2Z-Medium",
+    textAlign: "center" as const,
+    marginBottom: 20,
   },
   unreadDot: {
     position: "absolute",

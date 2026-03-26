@@ -25,7 +25,12 @@ import Toast from "../../../components/shared/Toast";
 import LoadingView from "../../../components/shared/LoadingView";
 import FriendsIcon from "../../../../assets/icons/header/friends.svg";
 import PlusIcon from "../../../../assets/icons/shared/plus.svg";
-import { useFriends, useFriendRequests } from "../../../hooks/useFriends";
+import {
+  useFriends,
+  useFriendRequests,
+  useUnreadRequestCount,
+  useMarkRequestsAsRead,
+} from "../../../hooks/useFriends";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "../../../lib/queryKeys";
 
@@ -74,6 +79,16 @@ export default function FriendsScreen() {
   const { data: receivedData, isLoading: receivedLoading } =
     useFriendRequests("received");
   const { data: sentData, isLoading: sentLoading } = useFriendRequests("sent");
+  const { data: unreadData } = useUnreadRequestCount();
+  const { mutate: markAsRead } = useMarkRequestsAsRead();
+
+  const unreadCount = unreadData?.count ?? 0;
+
+  useEffect(() => {
+    if (activeTab === "received") {
+      markAsRead();
+    }
+  }, [activeTab]);
 
   const handleError = useCallback((message: string) => {
     setToast({ visible: true, message, type: "error" });
@@ -199,7 +214,7 @@ export default function FriendsScreen() {
                 {tab.label}
               </Text>
               {tab.key === "received" &&
-                receivedRequests.length > 0 &&
+                unreadCount > 0 &&
                 activeTab !== "received" && <View style={styles.tabDot} />}
             </View>
           </Pressable>
