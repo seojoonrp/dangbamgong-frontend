@@ -26,6 +26,7 @@ export type ErrorCode =
   | "REQUEST_NOT_PENDING"
   | "NOT_FRIENDS"
   | "FRIEND_NOT_IN_VOID"
+  | "NUDGE_COOLDOWN"
   | "INVALID_REQUEST_TYPE";
 
 export interface ApiResponse<T> {

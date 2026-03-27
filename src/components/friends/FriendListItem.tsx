@@ -49,9 +49,14 @@ export default function FriendListItem({
       await nudgeMutation.mutateAsync(friend.userId);
       recordNudge(friend.userId);
     } catch (e) {
-      if (e instanceof ApiError && e.code === "FRIEND_NOT_IN_VOID") {
-        onError("공백 상태에 있지 않은 친구입니다.");
-        onForceRefresh();
+      if (e instanceof ApiError) {
+        if (e.code === "FRIEND_NOT_IN_VOID") {
+          onError("공백 상태에 있지 않은 친구입니다.");
+          onForceRefresh();
+        } else if (e.code === "NUDGE_COOLDOWN") {
+          recordNudge(friend.userId);
+          onError("아직 찔러보기 대기 중입니다.");
+        }
       }
     }
   };

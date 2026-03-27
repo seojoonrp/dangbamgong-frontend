@@ -5,8 +5,11 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
+import * as Notifications from "expo-notifications";
+import * as Device from "expo-device";
 import { tokenStorage } from "../api/client";
 import { getMe } from "../api/services/users";
+import { deleteDeviceToken } from "../api/services/devices";
 import { queryClient } from "./queryClient";
 import type { LoginResponse } from "../types/dto/auth";
 
@@ -64,6 +67,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
+    // 서버에서 디바이스 토큰 제거 (푸시 알림 중단)
+    try {
+      if (Device.isDevice) {
+        const pushToken = await Notifications.getExpoPushTokenAsync();
+        await deleteDeviceToken(pushToken.data);
+      }
+    } catch {
+      // 토큰 삭제 실패해도 로그아웃은 진행
+    }
+
     await tokenStorage.removeToken();
     queryClient.clear();
     setState({ isAuthenticated: false, isNewUser: false, isLoading: false });

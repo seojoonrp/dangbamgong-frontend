@@ -9,6 +9,7 @@ export interface UserMeResponse {
   id: string;
   nickname: string;
   tag: string;
+  socialProvider: string;
   isInVoid: boolean;
   currentVoidStartedAt: string;
   notificationSettings: NotificationSettings;
@@ -41,6 +42,7 @@ export interface UserSearchItem {
   nickname: string;
   tag: string;
   isBlocked: boolean;
+  isFriend: boolean;
 }
 
 export interface UserSearchResponse {

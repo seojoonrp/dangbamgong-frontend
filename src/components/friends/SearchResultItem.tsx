@@ -55,6 +55,24 @@ export default function SearchResultItem({
     );
   }
 
+  if (user.isFriend) {
+    return (
+      <SwipeableCard
+        ref={swipeableRef}
+        renderRightActions={() => <View />}
+        innerStyle={styles.innerContent}
+      >
+        <View style={styles.info}>
+          <Text style={styles.nickname}>{user.nickname}</Text>
+          <Text style={styles.tag}>#{user.tag}</Text>
+        </View>
+        <View style={[styles.statusBtn, styles.friendStatusBtn]}>
+          <Text style={styles.friendStatusText}>이미 친구</Text>
+        </View>
+      </SwipeableCard>
+    );
+  }
+
   const renderRightActions = () => <View />;
 
   return (
@@ -129,6 +147,16 @@ const styles = StyleSheet.create({
   },
   blockedStatusText: {
     color: Colors.point.coral,
+    fontSize: 16,
+    fontFamily: "A2Z-Light",
+  },
+  friendStatusBtn: {
+    backgroundColor: Colors.black.light,
+    borderWidth: 1,
+    borderColor: Colors.text.mid,
+  },
+  friendStatusText: {
+    color: Colors.text.mid,
     fontSize: 16,
     fontFamily: "A2Z-Light",
   },

@@ -23,7 +23,11 @@ export default function ProfileScreen() {
 
   if (isLoading || !user) return <LoadingView />;
 
-  const isValid = nickname.length >= 3 && nickname.length <= 15;
+  const isValid =
+    nickname.length >= 3 &&
+    nickname.length <= 15 &&
+    nickname.trim() !== "" &&
+    nickname !== user.nickname;
 
   const startEdit = () => {
     setNickname(user.nickname);
@@ -78,7 +82,7 @@ export default function ProfileScreen() {
             <View style={styles.valueRow}>
               <Text style={styles.value}>{user.nickname}</Text>
               <Pressable onPress={startEdit} style={styles.editBtn}>
-                <EditIcon width={10} height={10} color={Colors.white} />
+                <EditIcon width={12} height={12} color={Colors.white} />
               </Pressable>
             </View>
           )}
@@ -90,13 +94,17 @@ export default function ProfileScreen() {
           <Text style={[styles.value, styles.valueTracking]}>#{user.tag}</Text>
         </View>
 
-        {/* ID */}
+        {/* 가입 경로 */}
         <View style={styles.row}>
-          <Text style={styles.label}>ID</Text>
-          <Text style={styles.value}>{user.id}</Text>
+          <Text style={styles.label}>가입 경로</Text>
+          <Text style={styles.value}>
+            {user.socialProvider === "GOOGLE"
+              ? "Google"
+              : user.socialProvider === "KAKAO"
+                ? "Kakao"
+                : "Apple"}
+          </Text>
         </View>
-
-        {/* TODO: 이메일, 가입 경로 추가 */}
       </View>
     </SafeAreaView>
   );
@@ -124,7 +132,7 @@ const styles = StyleSheet.create({
   },
   value: {
     color: "rgba(250, 250, 250, 0.9)",
-    fontSize: 13,
+    fontSize: 13.5,
     fontFamily: "A2Z-Regular",
   },
   valueTracking: {
@@ -136,8 +144,8 @@ const styles = StyleSheet.create({
     gap: 7,
   },
   editBtn: {
-    width: 32,
-    height: 20,
+    width: 36,
+    height: 24,
     borderRadius: 99,
     backgroundColor: Colors.black.light,
     borderWidth: 1,
@@ -167,10 +175,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 99,
-    backgroundColor: Colors.point.coral,
+    borderColor: Colors.white,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
   saveBtnDisabled: {
-    backgroundColor: Colors.black.light,
+    opacity: 0.3,
   },
   saveBtnText: {
     color: Colors.white,
