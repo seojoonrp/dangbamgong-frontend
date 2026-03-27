@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { View, StyleSheet } from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { useFocusEffect } from "expo-router";
 import { Colors } from "../../../constants/colors";
 import { Layout } from "../../../constants/layout";
 import TabHeader from "../../../components/navigation/TabHeader";
@@ -27,6 +28,13 @@ export default function StatsScreen() {
   const insets = useSafeAreaInsets();
 
   const [currentDay, setCurrentDay] = useState(getTargetDay());
+
+  useFocusEffect(
+    useCallback(() => {
+      setCurrentDay(getTargetDay());
+    }, [])
+  );
+
   const { data: dailyStats, isLoading: dailyLoading } =
     useDailyStats(currentDay);
   usePrefetchAdjacentDayStats(currentDay, MIN_DATE);

@@ -1,7 +1,28 @@
+import { useEffect } from "react";
 import { Stack } from "expo-router";
+import { useNavigation, CommonActions } from "@react-navigation/native";
 import { Colors } from "../../../constants/colors";
 
 export default function FriendsLayout() {
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      const state = navigation.getState();
+      const thisRoute = state.routes.find((r) => r.name === "friends");
+      if (thisRoute?.state && (thisRoute.state.index ?? 0) > 0) {
+        navigation.dispatch({
+          ...CommonActions.reset({
+            index: 0,
+            routes: [{ name: "index" }],
+          }),
+          target: thisRoute.state.key,
+        });
+      }
+    });
+    return unsubscribe;
+  }, [navigation]);
+
   return (
     <Stack
       screenOptions={{
