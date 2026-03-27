@@ -11,15 +11,20 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { Colors } from "../../constants/colors";
-import { loginTest } from "../../api/services/auth";
+import { loginTest, loginWithSocial } from "../../api/services/auth";
 import { useAuth } from "../../lib/AuthContext";
+import {
+  signInWithGoogle,
+  signInWithKakao,
+  signInWithApple,
+  isCancellation,
+} from "../../lib/socialAuth";
+import type { LoginRequest } from "../../types/dto/auth";
 import VoidImage from "../../../assets/images/void.svg";
 import GoogleIcon from "../../../assets/icons/brand/google.svg";
 import KakaoIcon from "../../../assets/icons/brand/kakao.svg";
 import AppleIcon from "../../../assets/icons/brand/apple.svg";
 
-const COMING_SOON_TITLE = "준비 중";
-const COMING_SOON_MSG = "아직 구현되지 않은 기능입니다.";
 
 const TERMS_URL =
   "https://pushy-billboard-69f.notion.site/319feaa4f65880828bffeb89b933d543";
@@ -48,8 +53,27 @@ export default function LandingScreen() {
     }
   };
 
-  const handleComingSoon = () => {
-    Alert.alert(COMING_SOON_TITLE, COMING_SOON_MSG);
+  const handleSocialLogin = async (
+    signInFn: () => Promise<LoginRequest>,
+  ) => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const req = await signInFn();
+      const data = await loginWithSocial(req);
+      login(data);
+      if (data.isNewUser) {
+        router.replace("/(auth)/nickname");
+      } else {
+        router.replace("/(tabs)/main");
+      }
+    } catch (e: unknown) {
+      if (isCancellation(e)) return;
+      const message = e instanceof Error ? e.message : String(e);
+      Alert.alert("로그인 실패", message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -91,7 +115,8 @@ export default function LandingScreen() {
         <View style={styles.buttonArea}>
           <Pressable
             style={[styles.loginButton, styles.googleButton]}
-            onPress={handleComingSoon}
+            onPress={() => handleSocialLogin(signInWithGoogle)}
+            disabled={loading}
           >
             <GoogleIcon width={24} height={24} />
             <Text style={styles.googleButtonText}>Google로 로그인</Text>
@@ -99,7 +124,8 @@ export default function LandingScreen() {
 
           <Pressable
             style={[styles.loginButton, styles.kakaoButton]}
-            onPress={handleComingSoon}
+            onPress={() => handleSocialLogin(signInWithKakao)}
+            disabled={loading}
           >
             <KakaoIcon width={21} height={21} />
             <Text style={styles.kakaoButtonText}>카카오로 로그인</Text>
@@ -107,7 +133,8 @@ export default function LandingScreen() {
 
           <Pressable
             style={[styles.loginButton, styles.appleButton]}
-            onPress={handleComingSoon}
+            onPress={() => handleSocialLogin(signInWithApple)}
+            disabled={loading}
           >
             <AppleIcon width={24} height={24} />
             <Text style={styles.appleButtonText}>Apple로 로그인</Text>
