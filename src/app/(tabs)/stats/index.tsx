@@ -12,7 +12,10 @@ import Histogram from "../../../components/stats/Histogram";
 import Timetable from "../../../components/stats/Timetable";
 import StatsText from "../../../components/stats/StatsText";
 import StatsIcon from "../../../../assets/icons/header/stats.svg";
-import { useDailyStats } from "../../../hooks/useStats";
+import {
+  useDailyStats,
+  usePrefetchAdjacentDayStats,
+} from "../../../hooks/useStats";
 import { getTargetDay } from "../../../lib/dateUtils";
 import { MOCK_DAILY_STATS } from "../../../lib/mockStats";
 import LoadingView from "../../../components/shared/LoadingView";
@@ -26,6 +29,7 @@ export default function StatsScreen() {
   const [currentDay, setCurrentDay] = useState(getTargetDay());
   const { data: dailyStats, isLoading: dailyLoading } =
     useDailyStats(currentDay);
+  usePrefetchAdjacentDayStats(currentDay, MIN_DATE);
 
   const isToday = currentDay === getTargetDay();
   const isLoading = !USE_MOCK && dailyLoading;

@@ -7,6 +7,10 @@ import {
   Pressable,
   ActivityIndicator,
   Alert,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { router } from "expo-router";
 import { Colors } from "../../constants/colors";
@@ -39,65 +43,80 @@ export default function NicknameScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.imageContainer}>
-        <SleepImage width={280} height={168} color={Colors.text.dark} />
-      </View>
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.container}>
+          <View style={styles.imageContainer}>
+            <SleepImage width={280} height={168} color={Colors.text.dark} />
+          </View>
 
-      <Text style={styles.title}>
-        <Text style={styles.titleBold}>당밤공</Text>
-        <Text>에서 사용할{"\n"}</Text>
-        <Text style={styles.titleBold}>닉네임</Text>
-        <Text>을 입력해주세요</Text>
-      </Text>
-
-      <View style={styles.inputWrapper}>
-        {/* Shadow border behind input */}
-        <View
-          style={[styles.inputShadow, showError && styles.inputShadowError]}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="닉네임을 입력해주세요"
-          placeholderTextColor="#9c9ca0"
-          maxLength={15}
-          value={nickname}
-          onChangeText={(text) => {
-            setNicknameValue(text);
-          }}
-          onBlur={() => {
-            setBlurred(true);
-          }}
-        />
-      </View>
-
-      <Text style={[styles.errorText, !showError && styles.errorTextHidden]}>
-        닉네임을 3~15글자로 입력해주세요.
-      </Text>
-
-      <Pressable
-        style={[styles.button, (!isValid || loading) && styles.buttonDisabled]}
-        onPress={handleSubmit}
-        disabled={!isValid || loading}
-      >
-        {loading ? (
-          <ActivityIndicator color={Colors.white} />
-        ) : (
-          <Text
-            style={[
-              styles.buttonText,
-              (!isValid || loading) && styles.buttonTextDisabled,
-            ]}
-          >
-            시작하기
+          <Text style={styles.title}>
+            <Text style={styles.titleBold}>당밤공</Text>
+            <Text>에서 사용할{"\n"}</Text>
+            <Text style={styles.titleBold}>닉네임</Text>
+            <Text>을 입력해주세요</Text>
           </Text>
-        )}
-      </Pressable>
-    </View>
+
+          <View style={styles.inputWrapper}>
+            {/* Shadow border behind input */}
+            <View
+              style={[styles.inputShadow, showError && styles.inputShadowError]}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="닉네임을 입력해주세요"
+              placeholderTextColor="#9c9ca0"
+              maxLength={15}
+              value={nickname}
+              onChangeText={(text) => {
+                setNicknameValue(text);
+              }}
+              onBlur={() => {
+                setBlurred(true);
+              }}
+            />
+          </View>
+
+          <Text
+            style={[styles.errorText, !showError && styles.errorTextHidden]}
+          >
+            닉네임을 3~15글자로 입력해주세요.
+          </Text>
+
+          <Pressable
+            style={[
+              styles.button,
+              (!isValid || loading) && styles.buttonDisabled,
+            ]}
+            onPress={handleSubmit}
+            disabled={!isValid || loading}
+          >
+            {loading ? (
+              <ActivityIndicator color={Colors.white} />
+            ) : (
+              <Text
+                style={[
+                  styles.buttonText,
+                  (!isValid || loading) && styles.buttonTextDisabled,
+                ]}
+              >
+                시작하기
+              </Text>
+            )}
+          </Pressable>
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.black.dark,

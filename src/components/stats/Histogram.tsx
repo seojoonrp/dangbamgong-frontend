@@ -1,5 +1,13 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useEffect } from "react";
 import { View, Text, ScrollView, Pressable, StyleSheet } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withDelay,
+  Easing,
+  interpolateColor,
+} from "react-native-reanimated";
 import { Colors } from "../../constants/colors";
 import type { BucketItem } from "../../types/dto/stats";
 
@@ -10,11 +18,54 @@ const MAX_BAR_HEIGHT = 185;
 const GRID_LINE_COUNT = 10;
 const TOTAL_BUCKETS = 72; // 16:00 ~ 다음날 16:00, 20분 간격
 const CHART_WIDTH = TOTAL_BUCKETS * BAR_TOTAL;
-const Y_LABEL_WIDTH = 20; // Y축 레이블 영역 너비 (임시, 추후 조정)
+const BAR_ANIM_DURATION = 400;
+const BAR_STAGGER_DELAY = 8;
 
 interface Props {
   buckets: BucketItem[];
   isToday: boolean;
+}
+
+const COLOR_ANIM_DURATION = 200;
+
+function AnimatedBar({
+  targetHeight,
+  isMine,
+  index,
+}: {
+  targetHeight: number;
+  isMine: boolean;
+  index: number;
+}) {
+  const height = useSharedValue(0);
+  const colorProgress = useSharedValue(isMine ? 1 : 0);
+
+  useEffect(() => {
+    height.value = withDelay(
+      index * BAR_STAGGER_DELAY,
+      withTiming(targetHeight, {
+        duration: BAR_ANIM_DURATION,
+        easing: Easing.out(Easing.cubic),
+      }),
+    );
+  }, [targetHeight]);
+
+  useEffect(() => {
+    colorProgress.value = withTiming(isMine ? 1 : 0, {
+      duration: COLOR_ANIM_DURATION,
+    });
+  }, [isMine]);
+
+  const animStyle = useAnimatedStyle(() => ({
+    height: height.value,
+    backgroundColor: interpolateColor(
+      colorProgress.value,
+      [0, 1],
+      [Colors.white, Colors.point.coral],
+    ),
+  }));
+
+  return <Animated.View style={[styles.bar, animStyle]} />;
 }
 
 export default function Histogram({ buckets, isToday }: Props) {
@@ -29,19 +80,6 @@ export default function Histogram({ buckets, isToday }: Props) {
     currentMinutes >= 960 ? currentMinutes - 960 : currentMinutes + 480;
   const currentBucketIndex = Math.floor(minutesSince16 / 20);
   const nowX = isToday ? (minutesSince16 / 20) * BAR_TOTAL : -1;
-
-  const yLabels = useMemo(() => {
-    if (maxCount < 10) {
-      return [
-        { gridIndex: 9, value: Math.round(maxCount) },
-        { gridIndex: 4, value: Math.round(maxCount * 0.5) },
-      ];
-    }
-    return [9, 7, 5, 3, 1].map((gi) => ({
-      gridIndex: gi,
-      value: Math.round((maxCount * (gi + 1)) / 10),
-    }));
-  }, [maxCount]);
 
   const renderBucketLabel = (index: number) => {
     const totalMinutes = 960 + index * 20;
@@ -117,7 +155,7 @@ export default function Histogram({ buckets, isToday }: Props) {
           <View style={[styles.barsRow, { width: CHART_WIDTH }]}>
             {buckets.map((bucket, i) => {
               if (isToday && i > currentBucketIndex) return null;
-              const height =
+              const targetHeight =
                 bucket.count > 0
                   ? (bucket.count / maxCount) * MAX_BAR_HEIGHT
                   : 0;
@@ -130,16 +168,10 @@ export default function Histogram({ buckets, isToday }: Props) {
                   }
                   style={styles.barWrapper}
                 >
-                  <View
-                    style={[
-                      styles.bar,
-                      {
-                        height,
-                        backgroundColor: bucket.isMine
-                          ? Colors.point.coral
-                          : Colors.white,
-                      },
-                    ]}
+                  <AnimatedBar
+                    targetHeight={targetHeight}
+                    isMine={bucket.isMine}
+                    index={i}
                   />
                 </Pressable>
               );
@@ -160,18 +192,6 @@ export default function Histogram({ buckets, isToday }: Props) {
         </View>
       </ScrollView>
 
-      {/* Y축 레이블 */}
-      <View style={styles.yAxisOverlay} pointerEvents="none">
-        {yLabels.map(({ gridIndex, value }) => {
-          const top =
-            MAX_BAR_HEIGHT * (1 - (gridIndex + 1) / GRID_LINE_COUNT);
-          return (
-            <View key={gridIndex} style={[styles.yLabel, { top: top - 6 }]}>
-              <Text style={styles.yLabelText}>{value}</Text>
-            </View>
-          );
-        })}
-      </View>
     </View>
   );
 }
@@ -260,28 +280,6 @@ const styles = StyleSheet.create({
     top: 1,
     color: Colors.white,
     fontSize: 10,
-    fontFamily: "A2Z-Light",
-  },
-  yAxisOverlay: {
-    position: "absolute",
-    left: 0,
-    top: 0,
-    width: Y_LABEL_WIDTH,
-    height: MAX_BAR_HEIGHT,
-    zIndex: 4,
-  },
-  yLabel: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    alignItems: "center",
-  },
-  yLabelText: {
-    fontSize: 10,
-    color: Colors.black.light,
-    opacity: 0.8,
-    backgroundColor: Colors.black.dark,
-    paddingHorizontal: 2,
     fontFamily: "A2Z-Light",
   },
 });

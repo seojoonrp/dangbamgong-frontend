@@ -61,19 +61,8 @@ function formatWatermark(startedAt: string, endedAt: string): string[] {
 export default function Timetable({ sessions }: Props) {
   const scrollRef = useRef<ScrollView>(null);
 
-  // 초기 스크롤 위치 계산 (첫 세션 중간 - 3시간)
-  const initialOffset =
-    sessions.length > 0
-      ? Math.max(
-          0,
-          ((toMinuteOffset(sessions[0].startedAt) +
-            toMinuteOffset(sessions[0].endedAt)) /
-            2 /
-            60 -
-            3) *
-            HOUR_HEIGHT,
-        )
-      : 0;
+  // 고정 스크롤 위치: 23:00 (16시 기준 7시간 오프셋) 부근이 보이도록
+  const initialOffset = 6 * HOUR_HEIGHT;
 
   return (
     <View style={styles.card}>
