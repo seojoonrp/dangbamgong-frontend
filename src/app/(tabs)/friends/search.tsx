@@ -26,6 +26,7 @@ export default function FriendSearchScreen() {
     visible: false,
     message: "",
   });
+  const [sentRequestIds, setSentRequestIds] = useState<Set<string>>(new Set());
 
   const debouncedQuery = useDebounce(query.trim(), 1000);
   const { data, isLoading } = useSearchUsers(debouncedQuery);
@@ -43,6 +44,7 @@ export default function FriendSearchScreen() {
   const handleSendRequest = async (userId: string) => {
     try {
       await sendRequest.mutateAsync(userId);
+      setSentRequestIds((prev) => new Set(prev).add(userId));
       showToast("친구 요청을 보냈습니다.");
     } catch (e) {
       if (e instanceof ApiError) {
@@ -72,9 +74,12 @@ export default function FriendSearchScreen() {
     }
   };
 
-  const users = [...(data?.users ?? [])].sort((a, b) =>
-    a.tag.localeCompare(b.tag),
-  );
+  const users = [...(data?.users ?? [])]
+    .map((u) => ({
+      ...u,
+      hasSentRequest: u.hasSentRequest || sentRequestIds.has(u.userId),
+    }))
+    .sort((a, b) => a.tag.localeCompare(b.tag));
 
   const hasQuery = debouncedQuery.length > 0;
   const hasResults = users.length > 0;

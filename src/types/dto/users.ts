@@ -43,6 +43,7 @@ export interface UserSearchItem {
   tag: string;
   isBlocked: boolean;
   isFriend: boolean;
+  hasSentRequest: boolean;
 }
 
 export interface UserSearchResponse {

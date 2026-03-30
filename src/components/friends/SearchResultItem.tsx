@@ -67,7 +67,25 @@ export default function SearchResultItem({
           <Text style={styles.tag}>#{user.tag}</Text>
         </View>
         <View style={[styles.statusBtn, styles.friendStatusBtn]}>
-          <Text style={styles.friendStatusText}>이미 친구</Text>
+          <Text style={styles.friendStatusText}>친구</Text>
+        </View>
+      </SwipeableCard>
+    );
+  }
+
+  if (user.hasSentRequest) {
+    return (
+      <SwipeableCard
+        ref={swipeableRef}
+        renderRightActions={() => <View />}
+        innerStyle={styles.innerContent}
+      >
+        <View style={styles.info}>
+          <Text style={styles.nickname}>{user.nickname}</Text>
+          <Text style={styles.tag}>#{user.tag}</Text>
+        </View>
+        <View style={[styles.statusBtn, styles.sentStatusBtn]}>
+          <Text style={styles.sentStatusText}>요청 보냄</Text>
         </View>
       </SwipeableCard>
     );
@@ -159,5 +177,17 @@ const styles = StyleSheet.create({
     color: Colors.text.mid,
     fontSize: 16,
     fontFamily: "A2Z-Light",
+  },
+  sentStatusBtn: {
+    backgroundColor: Colors.black.light,
+    borderWidth: 1,
+    borderColor: Colors.text.dark,
+  },
+  sentStatusText: {
+    color: Colors.text.mid,
+    fontSize: 16,
+    fontFamily: "A2Z-Light",
+    textAlign: "center",
+    lineHeight: 22,
   },
 });
