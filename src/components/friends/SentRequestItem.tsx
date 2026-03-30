@@ -22,9 +22,10 @@ interface SentRequest {
 
 interface Props {
   request: SentRequest;
+  onSuccess: (message: string) => void;
 }
 
-export default function SentRequestItem({ request }: Props) {
+export default function SentRequestItem({ request, onSuccess }: Props) {
   const swipeableRef = useRef<SwipeableMethods>(null);
   const deleteMutation = useDeleteFriendRequest();
 
@@ -32,7 +33,12 @@ export default function SentRequestItem({ request }: Props) {
 
   const handleDelete = () => {
     swipeableRef.current?.close();
-    deleteMutation.mutate(request.requestId);
+    deleteMutation.mutate(request.requestId, {
+      onSuccess: () =>
+        onSuccess(
+          isRejected ? "성공적으로 삭제되었습니다." : "성공적으로 취소되었습니다.",
+        ),
+    });
   };
 
   const renderRightActions = () => (

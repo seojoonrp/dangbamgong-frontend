@@ -71,7 +71,6 @@ export default function FriendsScreen() {
   const [toast, setToast] = useState({
     visible: false,
     message: "",
-    type: "error" as "success" | "error",
   });
   const queryClient = useQueryClient();
 
@@ -91,7 +90,11 @@ export default function FriendsScreen() {
   }, [activeTab]);
 
   const handleError = useCallback((message: string) => {
-    setToast({ visible: true, message, type: "error" });
+    setToast({ visible: true, message });
+  }, []);
+
+  const handleSuccess = useCallback((message: string) => {
+    setToast({ visible: true, message });
   }, []);
 
   const handleForceRefresh = useCallback(() => {
@@ -120,6 +123,7 @@ export default function FriendsScreen() {
               <FriendListItem
                 friend={item}
                 onError={handleError}
+                onSuccess={handleSuccess}
                 onForceRefresh={handleForceRefresh}
               />
             )}
@@ -146,7 +150,11 @@ export default function FriendsScreen() {
             data={receivedRequests}
             keyExtractor={(item) => item.requestId}
             renderItem={({ item }) => (
-              <ReceivedRequestItem request={item} onError={handleError} />
+              <ReceivedRequestItem
+                request={item}
+                onError={handleError}
+                onSuccess={handleSuccess}
+              />
             )}
             contentContainerStyle={styles.listContent}
             ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -169,7 +177,7 @@ export default function FriendsScreen() {
           data={sentData?.requests ?? []}
           keyExtractor={(item: any) => item.requestId}
           renderItem={({ item }: { item: any }) => (
-            <SentRequestItem request={item} />
+            <SentRequestItem request={item} onSuccess={handleSuccess} />
           )}
           contentContainerStyle={styles.listContent}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
@@ -225,7 +233,6 @@ export default function FriendsScreen() {
 
       <Toast
         message={toast.message}
-        type={toast.type}
         visible={toast.visible}
         onHide={() => setToast((t) => ({ ...t, visible: false }))}
       />

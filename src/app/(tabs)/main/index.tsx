@@ -182,10 +182,10 @@ export default function MainScreen() {
       <View style={styles.content}>
         {/* awake 상태 */}
         {voidState === "awake" && (
-          <VoidTouchArea mode="tap" onAction={handleStartVoid}>
+          <VoidTouchArea mode="longPress" onAction={handleStartVoid}>
             {renderStateImage()}
             <Text style={styles.hintText}>
-              공백을 시작하려면 아무 곳이나 누르세요.
+              공백을 시작하려면 꾹 누르세요.
             </Text>
           </VoidTouchArea>
         )}
@@ -212,10 +212,10 @@ export default function MainScreen() {
 
         {/* ended 상태 */}
         {voidState === "ended" && (
-          <VoidTouchArea mode="tap" onAction={handleStartVoid}>
+          <VoidTouchArea mode="longPress" onAction={handleStartVoid}>
             {renderStateImage()}
             <Text style={styles.hintText}>
-              다시 공백을 시작하려면 아무 곳이나 누르세요.
+              다시 공백을 시작하려면 꾹 누르세요.
             </Text>
           </VoidTouchArea>
         )}

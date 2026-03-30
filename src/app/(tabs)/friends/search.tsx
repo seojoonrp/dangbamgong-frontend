@@ -25,7 +25,6 @@ export default function FriendSearchScreen() {
   const [toast, setToast] = useState({
     visible: false,
     message: "",
-    type: "success" as "success" | "error",
   });
 
   const debouncedQuery = useDebounce(query.trim(), 1000);
@@ -33,8 +32,8 @@ export default function FriendSearchScreen() {
   const sendRequest = useSendFriendRequest();
   const unblockUser = useUnblockUser();
 
-  const showToast = (message: string, type: "success" | "error") => {
-    setToast({ visible: true, message, type });
+  const showToast = (message: string) => {
+    setToast({ visible: true, message });
   };
 
   const handleChangeText = (text: string) => {
@@ -44,21 +43,21 @@ export default function FriendSearchScreen() {
   const handleSendRequest = async (userId: string) => {
     try {
       await sendRequest.mutateAsync(userId);
-      showToast("친구 요청을 보냈습니다.", "success");
+      showToast("친구 요청을 보냈습니다.");
     } catch (e) {
       if (e instanceof ApiError) {
         switch (e.code) {
           case "REQUEST_ALREADY_SENT":
-            showToast("이미 요청을 보냈습니다.", "error");
+            showToast("이미 요청을 보냈습니다.");
             break;
           case "ALREADY_FRIENDS":
-            showToast("이미 친구입니다.", "error");
+            showToast("이미 친구입니다.");
             break;
           case "BLOCKED":
-            showToast("차단된 유저입니다.", "error");
+            showToast("차단된 유저입니다.");
             break;
           default:
-            showToast("요청에 실패했습니다.", "error");
+            showToast("요청에 실패했습니다.");
         }
       }
     }
@@ -67,9 +66,9 @@ export default function FriendSearchScreen() {
   const handleUnblock = async (userId: string) => {
     try {
       await unblockUser.mutateAsync(userId);
-      showToast("차단 해제되었습니다.", "success");
+      showToast("차단 해제되었습니다.");
     } catch {
-      showToast("차단 해제에 실패했습니다.", "error");
+      showToast("차단 해제에 실패했습니다.");
     }
   };
 
@@ -138,7 +137,6 @@ export default function FriendSearchScreen() {
 
       <Toast
         message={toast.message}
-        type={toast.type}
         visible={toast.visible}
         onHide={() => setToast((t) => ({ ...t, visible: false }))}
       />

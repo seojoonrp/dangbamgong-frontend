@@ -12,7 +12,7 @@ export const tokenStorage = {
 
 export const client = axios.create({
   baseURL: "http://172.30.1.28:8000/api/v1", // 데스크탑
-  // baseURL: "http://10.23.88.212:8000/api/v1", // 노트북
+  // baseURL: "http://10.150.197.232:8000/api/v1", // 노트북
 
   timeout: 7000,
   headers: { "Content-Type": "application/json" },

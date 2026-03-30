@@ -15,12 +15,14 @@ import { SwipeableCard, SwipeActions } from "./SwipeableCard";
 interface Props {
   friend: FriendItem;
   onError: (message: string) => void;
+  onSuccess: (message: string) => void;
   onForceRefresh: () => void;
 }
 
 export default function FriendListItem({
   friend,
   onError,
+  onSuccess,
   onForceRefresh,
 }: Props) {
   const swipeableRef = useRef<SwipeableMethods>(null);
@@ -71,6 +73,7 @@ export default function FriendListItem({
         onPress: async () => {
           try {
             await removeMutation.mutateAsync(friend.userId);
+            onSuccess("성공적으로 삭제되었습니다.");
           } catch (e) {
             if (e instanceof ApiError && e.code === "NOT_FRIENDS") {
               onError("친구가 아닌 유저입니다.");
@@ -89,7 +92,10 @@ export default function FriendListItem({
       {
         text: "차단",
         style: "destructive",
-        onPress: () => blockMutation.mutate(friend.userId),
+        onPress: () =>
+          blockMutation.mutate(friend.userId, {
+            onSuccess: () => onSuccess("성공적으로 차단되었습니다."),
+          }),
       },
     ]);
   };

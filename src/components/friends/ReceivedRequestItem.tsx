@@ -17,9 +17,10 @@ import {
 interface Props {
   request: RequestItemType;
   onError: (message: string) => void;
+  onSuccess: (message: string) => void;
 }
 
-export default function ReceivedRequestItem({ request, onError }: Props) {
+export default function ReceivedRequestItem({ request, onError, onSuccess }: Props) {
   const swipeableRef = useRef<SwipeableMethods>(null);
   const acceptMutation = useAcceptFriendRequest();
   const rejectMutation = useRejectFriendRequest();
@@ -31,7 +32,9 @@ export default function ReceivedRequestItem({ request, onError }: Props) {
 
   const handleReject = () => {
     swipeableRef.current?.close();
-    rejectMutation.mutate(request.requestId);
+    rejectMutation.mutate(request.requestId, {
+      onSuccess: () => onSuccess("친구 요청을 거절했습니다."),
+    });
   };
 
   const handleBlock = () => {
@@ -41,7 +44,10 @@ export default function ReceivedRequestItem({ request, onError }: Props) {
       {
         text: "차단",
         style: "destructive",
-        onPress: () => blockMutation.mutate(request.sender.userId),
+        onPress: () =>
+          blockMutation.mutate(request.sender.userId, {
+            onSuccess: () => onSuccess("성공적으로 차단되었습니다."),
+          }),
       },
     ]);
   };
