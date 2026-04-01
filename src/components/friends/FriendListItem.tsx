@@ -14,14 +14,12 @@ import { SwipeableCard, SwipeActions } from "./SwipeableCard";
 
 interface Props {
   friend: FriendItem;
-  onError: (message: string) => void;
   onSuccess: (message: string) => void;
   onForceRefresh: () => void;
 }
 
 export default function FriendListItem({
   friend,
-  onError,
   onSuccess,
   onForceRefresh,
 }: Props) {
@@ -53,11 +51,14 @@ export default function FriendListItem({
     } catch (e) {
       if (e instanceof ApiError) {
         if (e.code === "FRIEND_NOT_IN_VOID") {
-          onError("공백 상태에 있지 않은 친구입니다.");
+          Alert.alert("오류", "공백 상태에 있지 않은 친구입니다.");
           onForceRefresh();
         } else if (e.code === "NUDGE_COOLDOWN") {
           recordNudge(friend.userId);
-          onError("아직 찔러보기 대기 중입니다.");
+          Alert.alert("오류", "아직 찔러보기 대기 중입니다.");
+        } else if (e.code === "NOT_FRIENDS") {
+          Alert.alert("오류", "친구가 아닌 유저입니다.");
+          onForceRefresh();
         }
       }
     }
@@ -76,7 +77,7 @@ export default function FriendListItem({
             onSuccess("성공적으로 삭제되었습니다.");
           } catch (e) {
             if (e instanceof ApiError && e.code === "NOT_FRIENDS") {
-              onError("친구가 아닌 유저입니다.");
+              Alert.alert("오류", "친구가 아닌 유저입니다.");
               onForceRefresh();
             }
           }
@@ -149,7 +150,9 @@ export default function FriendListItem({
                   {nudgeAvailable ? (
                     <SendIcon width={22} height={22} color="#9999A7" />
                   ) : (
-                    <SendIcon width={22} height={22} color={Colors.text.dark} />
+                    <Text style={styles.nudgeCooldownText}>
+                      {formatNudgeTime(remainingSec)}
+                    </Text>
                   )}
                 </Pressable>
               </View>
@@ -278,5 +281,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.black.light,
     borderWidth: 1,
     borderColor: Colors.text.dark,
+  },
+  nudgeCooldownText: {
+    color: Colors.text.mid,
+    fontSize: 13,
+    fontFamily: "A2Z-Light",
+    marginLeft: 4,
   },
 });

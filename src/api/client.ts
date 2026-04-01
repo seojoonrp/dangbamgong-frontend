@@ -25,6 +25,7 @@ client.interceptors.request.use(async (config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
   return config;
 });
 
@@ -44,8 +45,12 @@ client.interceptors.response.use(
         body.code ?? "BAD_REQUEST",
         error.response.status,
       );
+      console.error(
+        `[API] Error ${error.response.status} ${error.config?.method?.toUpperCase()} ${error.config?.url} — ${apiError.code}`,
+      );
       return Promise.reject(apiError);
     }
+    console.error(`[API] Network error — ${error.message}`);
     return Promise.reject(error);
   },
 );

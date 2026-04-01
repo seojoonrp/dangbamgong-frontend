@@ -7,6 +7,7 @@ import {
   useRejectFriendRequest,
 } from "../../hooks/useFriends";
 import { useBlockUser } from "../../hooks/useUser";
+import { ApiError } from "../../api/client";
 import type { ReceivedRequestItem as RequestItemType } from "../../types/dto/friends";
 import {
   SwipeableCard,
@@ -16,28 +17,43 @@ import {
 
 interface Props {
   request: RequestItemType;
-  onError: (message: string) => void;
   onSuccess: (message: string) => void;
+  onForceRefresh: () => void;
 }
 
 export default function ReceivedRequestItem({
   request,
-  onError,
   onSuccess,
+  onForceRefresh,
 }: Props) {
   const swipeableRef = useRef<SwipeableMethods>(null);
   const acceptMutation = useAcceptFriendRequest();
   const rejectMutation = useRejectFriendRequest();
   const blockMutation = useBlockUser();
 
-  const handleAccept = () => {
-    acceptMutation.mutate(request.requestId);
+  const handleAccept = async () => {
+    try {
+      await acceptMutation.mutateAsync(request.requestId);
+    } catch (e) {
+      if (e instanceof ApiError) {
+        const msg =
+          e.code === "ALREADY_FRIENDS"
+            ? "이미 친구입니다."
+            : "취소된 친구 요청입니다.";
+        Alert.alert("오류", msg);
+      }
+      onForceRefresh();
+    }
   };
 
   const handleReject = () => {
     swipeableRef.current?.close();
     rejectMutation.mutate(request.requestId, {
       onSuccess: () => onSuccess("친구 요청을 거절했습니다."),
+      onError: (e) => {
+        if (e instanceof ApiError) Alert.alert("오류", "취소된 친구 요청입니다.");
+        onForceRefresh();
+      },
     });
   };
 

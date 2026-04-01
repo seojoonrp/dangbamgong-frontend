@@ -1,8 +1,9 @@
 import { useRef } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Alert } from "react-native";
 import { Colors } from "../../constants/colors";
 import { formatRelativeTime } from "../../lib/dateUtils";
 import { useDeleteFriendRequest } from "../../hooks/useFriends";
+import { ApiError } from "../../api/client";
 import {
   SwipeableCard,
   SwipeActions,
@@ -23,9 +24,10 @@ interface SentRequest {
 interface Props {
   request: SentRequest;
   onSuccess: (message: string) => void;
+  onForceRefresh: () => void;
 }
 
-export default function SentRequestItem({ request, onSuccess }: Props) {
+export default function SentRequestItem({ request, onSuccess, onForceRefresh }: Props) {
   const swipeableRef = useRef<SwipeableMethods>(null);
   const deleteMutation = useDeleteFriendRequest();
 
@@ -38,6 +40,10 @@ export default function SentRequestItem({ request, onSuccess }: Props) {
         onSuccess(
           isRejected ? "요청이 삭제되었습니다." : "요청이 취소되었습니다.",
         ),
+      onError: (e) => {
+        if (e instanceof ApiError) Alert.alert("오류", "이미 처리된 친구 요청입니다.");
+        onForceRefresh();
+      },
     });
   };
 

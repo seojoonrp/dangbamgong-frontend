@@ -8,7 +8,7 @@ const HOUR_HEIGHT = 68;
 const TOTAL_HOURS = 24; // 16:00 ~ next 16:00
 // 고정 높이 대신 flex로 부모에서 조절
 const HOUR_LABEL_WIDTH = 18;
-const TIMELINE_LEFT = 36;
+const TIMELINE_LEFT = 48;
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 interface Props {
@@ -97,12 +97,16 @@ export default function Timetable({ sessions }: Props) {
         {sessions.map((session, i) => {
           const startOffset = toMinuteOffset(session.startedAt);
           const endOffset = toMinuteOffset(session.endedAt);
+          const durationMin = endOffset - startOffset;
+
+          // 10분 미만 세션은 표시하지 않음
+          if (durationMin < 5) return null;
+
           const top = (startOffset / 60) * HOUR_HEIGHT;
           const height = Math.max(
             ((endOffset - startOffset) / 60) * HOUR_HEIGHT,
             4,
           );
-          const durationMin = endOffset - startOffset;
           const isLongSession = durationMin >= 60;
           const watermarkLines = formatWatermark(
             session.startedAt,
@@ -118,30 +122,36 @@ export default function Timetable({ sessions }: Props) {
               ]}
             >
               {isLongSession && (
-                <>
-                  {/* 워터마크 텍스트 */}
-                  <View style={styles.watermarkContainer}>
-                    {watermarkLines.map((line, j) => (
-                      <Text
-                        key={j}
-                        style={styles.watermarkText}
-                        allowFontScaling={false}
-                      >
-                        {line}
-                      </Text>
-                    ))}
-                  </View>
-
-                  {/* 일러스트 */}
-                  <View style={styles.illustrationContainer}>
-                    <VoidIllustration
-                      width={248}
-                      height={140}
-                      color={Colors.point.coral}
-                    />
-                  </View>
-                </>
+                /* 워터마크 텍스트 */
+                <View style={styles.watermarkContainer}>
+                  {watermarkLines.map((line, j) => (
+                    <Text
+                      key={j}
+                      style={styles.watermarkText}
+                      allowFontScaling={false}
+                    >
+                      {line}
+                    </Text>
+                  ))}
+                </View>
               )}
+
+              {/* 일러스트 */}
+              <View
+                style={[
+                  styles.illustrationContainer,
+                  durationMin <= 100 && { bottom: -30 },
+                ]}
+              >
+                <VoidIllustration
+                  width={248}
+                  height={140}
+                  color={Colors.point.coral}
+                />
+              </View>
+
+              {/* border overlay — 일러스트 위에 렌더 */}
+              <View style={styles.borderOverlay} />
 
               {/* 코랄 스트립 (오른쪽 끝) */}
               <View style={styles.coralStrip} />
@@ -184,6 +194,18 @@ const styles = StyleSheet.create({
   sessionBlock: {
     position: "absolute",
     backgroundColor: Colors.black.dark,
+    borderTopLeftRadius: 28,
+    borderBottomLeftRadius: 28,
+    borderTopRightRadius: 0,
+    borderBottomRightRadius: 0,
+    overflow: "hidden",
+  },
+  borderOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     borderLeftWidth: 1,
     borderTopWidth: 1,
     borderBottomWidth: 1,
@@ -193,7 +215,6 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 28,
     borderTopRightRadius: 0,
     borderBottomRightRadius: 0,
-    overflow: "hidden",
   },
   coralStrip: {
     position: "absolute",

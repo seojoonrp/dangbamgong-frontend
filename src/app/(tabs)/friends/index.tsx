@@ -147,7 +147,6 @@ export default function FriendsScreen() {
             renderItem={({ item }) => (
               <FriendListItem
                 friend={item}
-                onError={handleError}
                 onSuccess={handleSuccess}
                 onForceRefresh={handleForceRefresh}
               />
@@ -179,8 +178,8 @@ export default function FriendsScreen() {
             renderItem={({ item }) => (
               <ReceivedRequestItem
                 request={item}
-                onError={handleError}
                 onSuccess={handleSuccess}
+                onForceRefresh={handleForceRefresh}
               />
             )}
             contentContainerStyle={styles.listContent}
@@ -206,7 +205,11 @@ export default function FriendsScreen() {
           data={sentData?.requests ?? []}
           keyExtractor={(item) => item.requestId}
           renderItem={({ item }) => (
-            <SentRequestItem request={item} onSuccess={handleSuccess} />
+            <SentRequestItem
+                request={item}
+                onSuccess={handleSuccess}
+                onForceRefresh={handleForceRefresh}
+              />
           )}
           contentContainerStyle={styles.listContent}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
