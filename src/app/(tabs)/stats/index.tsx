@@ -1,10 +1,10 @@
 import { useState, useCallback } from "react";
 import { View, StyleSheet } from "react-native";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "../../../lib/queryKeys";
+import PullToRefreshView from "../../../components/shared/PullToRefreshView";
 import { Colors } from "../../../constants/colors";
 import { Layout } from "../../../constants/layout";
 import TabHeader from "../../../components/navigation/TabHeader";
@@ -26,6 +26,7 @@ const USE_MOCK = false; // TODO: 실제 데이터가 충분해지면 false로 �
 
 export default function StatsScreen() {
   const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
 
   const [currentDay, setCurrentDay] = useState(getTargetDay());
 
@@ -44,6 +45,10 @@ export default function StatsScreen() {
 
   const stats = USE_MOCK ? MOCK_DAILY_STATS : dailyStats;
 
+  const handleRefresh = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: queryKeys.stats.daily(currentDay) });
+  }, [queryClient, currentDay]);
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <TabHeader icon={StatsIcon} title="Statistics" />
@@ -54,23 +59,25 @@ export default function StatsScreen() {
         onDayChange={setCurrentDay}
       />
 
-      {isLoading ? (
-        <LoadingView />
-      ) : (
-        <View style={styles.content}>
-          <Histogram buckets={stats?.buckets ?? []} isToday={isToday} />
+      <PullToRefreshView onRefresh={handleRefresh}>
+        {isLoading ? (
+          <LoadingView />
+        ) : (
+          <View style={styles.content}>
+            <Histogram buckets={stats?.buckets ?? []} isToday={isToday} />
 
-          <View style={styles.timetableSection}>
-            <Timetable sessions={stats?.mySessions ?? []} />
+            <View style={styles.timetableSection}>
+              <Timetable sessions={stats?.mySessions ?? []} />
+            </View>
+
+            <StatsText
+              myTotalDurationSec={stats?.myTotalDurationSec ?? 0}
+              totalSleptUsers={stats?.totalSleptUsers ?? 0}
+              allTotalDurationSec={stats?.allTotalDurationSec ?? 0}
+            />
           </View>
-
-          <StatsText
-            myTotalDurationSec={stats?.myTotalDurationSec ?? 0}
-            totalSleptUsers={stats?.totalSleptUsers ?? 0}
-            allTotalDurationSec={stats?.allTotalDurationSec ?? 0}
-          />
-        </View>
-      )}
+        )}
+      </PullToRefreshView>
     </View>
   );
 }

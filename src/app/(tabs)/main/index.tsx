@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import { View, Text, StyleSheet, Pressable, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "../../../lib/queryKeys";
+import PullToRefreshView from "../../../components/shared/PullToRefreshView";
 import { Colors } from "../../../constants/colors";
 import { Layout } from "../../../constants/layout";
 import TabHeader from "../../../components/navigation/TabHeader";
@@ -78,6 +81,7 @@ export default function MainScreen() {
         : `${elapsedMin}분째 공백 중`
       : null;
 
+  const queryClient = useQueryClient();
   const { data: homeStats } = useHomeStats(isInVoid);
   const { data: unreadData } = useUnreadCount();
   const targetDay = getTargetDay();
@@ -141,6 +145,14 @@ export default function MainScreen() {
     ]);
   }, [cancelVoidMutation]);
 
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.user.me() }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.stats.home() }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.void.history(targetDay) }),
+    ]);
+  }, [queryClient, targetDay]);
+
   const handleToggleActivity = (name: string) => {
     setSelectedActivities((prev) => {
       const next = new Set(prev);
@@ -184,47 +196,47 @@ export default function MainScreen() {
         }
       />
 
-      <View style={styles.content}>
-        {/* awake 상태 */}
-        {voidState === "awake" && (
-          <VoidTouchArea mode="longPress" onAction={handleStartVoid}>
-            {renderStateImage()}
-            <Text style={styles.hintText}>
-              공백을 시작하려면 꾹 누르세요.
-            </Text>
-          </VoidTouchArea>
-        )}
+      <PullToRefreshView onRefresh={handleRefresh}>
+        <View style={styles.content}>
+          {/* awake 상태 */}
+          {voidState === "awake" && (
+            <VoidTouchArea mode="longPress" onAction={handleStartVoid}>
+              {renderStateImage()}
+              <Text style={styles.hintText}>공백을 시작하려면 꾹 누르세요.</Text>
+            </VoidTouchArea>
+          )}
 
-        {/* inVoid 상태 */}
-        {voidState === "inVoid" && (
-          <VoidTouchArea mode="longPress" onAction={handleEndVoid}>
-            {elapsedLabel && (
-              <Text style={styles.elapsedText}>{elapsedLabel}</Text>
-            )}
-            {renderStateImage()}
-            <Text style={styles.activityLabel}>공백 동안 무엇을 했나요?</Text>
-            <ActivitySelector
-              selectedIds={selectedActivities}
-              onToggle={handleToggleActivity}
-              onAddPress={() => setShowAddCard(true)}
-            />
-            <Text style={styles.hintText}>공백을 끝내려면 꾹 누르세요.</Text>
-            <Pressable style={styles.cancelButton} onPress={handleCancelVoid}>
-              <Text style={styles.cancelText}>공백 취소하기</Text>
-            </Pressable>
-          </VoidTouchArea>
-        )}
+          {/* inVoid 상태 */}
+          {voidState === "inVoid" && (
+            <VoidTouchArea mode="longPress" onAction={handleEndVoid}>
+              {elapsedLabel && (
+                <Text style={styles.elapsedText}>{elapsedLabel}</Text>
+              )}
+              {renderStateImage()}
+              <Text style={styles.activityLabel}>공백 동안 무엇을 했나요?</Text>
+              <ActivitySelector
+                selectedIds={selectedActivities}
+                onToggle={handleToggleActivity}
+                onAddPress={() => setShowAddCard(true)}
+              />
+              <Text style={styles.hintText}>공백을 끝내려면 꾹 누르세요.</Text>
+              <Pressable style={styles.cancelButton} onPress={handleCancelVoid}>
+                <Text style={styles.cancelText}>공백 취소하기</Text>
+              </Pressable>
+            </VoidTouchArea>
+          )}
 
-        {/* ended 상태 */}
-        {voidState === "ended" && (
-          <VoidTouchArea mode="longPress" onAction={handleStartVoid}>
-            {renderStateImage()}
-            <Text style={styles.hintText}>
-              다시 공백을 시작하려면 꾹 누르세요.
-            </Text>
-          </VoidTouchArea>
-        )}
-      </View>
+          {/* ended 상태 */}
+          {voidState === "ended" && (
+            <VoidTouchArea mode="longPress" onAction={handleStartVoid}>
+              {renderStateImage()}
+              <Text style={styles.hintText}>
+                다시 공백을 시작하려면 꾹 누르세요.
+              </Text>
+            </VoidTouchArea>
+          )}
+        </View>
+      </PullToRefreshView>
 
       {/* 하단 통계 바 */}
       <View style={styles.statsWrapper}>

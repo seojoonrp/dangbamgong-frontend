@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
-  FlatList,
   StyleSheet,
   Pressable,
   useWindowDimensions,
@@ -10,9 +9,11 @@ import {
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  useAnimatedScrollHandler,
   withTiming,
   Easing,
 } from "react-native-reanimated";
+import PullToRefreshView from "../../../components/shared/PullToRefreshView";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Colors } from "../../../constants/colors";
@@ -98,6 +99,19 @@ export default function FriendsScreen() {
     setToast({ visible: true, message });
   }, []);
 
+  const scrollOffsetY = useSharedValue(0);
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      "worklet";
+      scrollOffsetY.value = event.contentOffset.y;
+    },
+  });
+
+  const handleTabChange = useCallback((tab: FriendTab) => {
+    scrollOffsetY.value = 0;
+    setActiveTab(tab);
+  }, [scrollOffsetY]);
+
   const handleForceRefresh = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: queryKeys.friends.list() });
     queryClient.invalidateQueries({
@@ -106,6 +120,14 @@ export default function FriendsScreen() {
     queryClient.invalidateQueries({
       queryKey: queryKeys.friends.requests("sent"),
     });
+  }, [queryClient]);
+
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([
+      queryClient.refetchQueries({ queryKey: queryKeys.friends.list() }),
+      queryClient.refetchQueries({ queryKey: queryKeys.friends.requests("received") }),
+      queryClient.refetchQueries({ queryKey: queryKeys.friends.requests("sent") }),
+    ]);
   }, [queryClient]);
 
   const friends = friendsData?.friends ?? [];
@@ -117,7 +139,9 @@ export default function FriendsScreen() {
       return (
         <View style={styles.content}>
           <Text style={styles.countText}>{friends.length}명의 친구</Text>
-          <FlatList
+          <Animated.FlatList
+            onScroll={scrollHandler}
+            scrollEventThrottle={16}
             data={friends}
             keyExtractor={(item) => item.userId}
             renderItem={({ item }) => (
@@ -147,7 +171,9 @@ export default function FriendsScreen() {
           <Text style={styles.countText}>
             받은 요청 {receivedRequests.length}개
           </Text>
-          <FlatList
+          <Animated.FlatList
+            onScroll={scrollHandler}
+            scrollEventThrottle={16}
             data={receivedRequests}
             keyExtractor={(item) => item.requestId}
             renderItem={({ item }) => (
@@ -174,7 +200,9 @@ export default function FriendsScreen() {
         <Text style={styles.countText}>
           보낸 요청 {(sentData?.requests ?? []).length}개
         </Text>
-        <FlatList
+        <Animated.FlatList
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
           data={sentData?.requests ?? []}
           keyExtractor={(item) => item.requestId}
           renderItem={({ item }) => (
@@ -211,7 +239,7 @@ export default function FriendsScreen() {
           <Pressable
             key={tab.key}
             style={styles.tab}
-            onPress={() => setActiveTab(tab.key)}
+            onPress={() => handleTabChange(tab.key)}
           >
             <View style={styles.tabLabelRow}>
               <Text
@@ -230,7 +258,9 @@ export default function FriendsScreen() {
         ))}
       </View>
 
-      {renderContent()}
+      <PullToRefreshView onRefresh={handleRefresh} scrollOffsetY={scrollOffsetY}>
+        {renderContent()}
+      </PullToRefreshView>
 
       <Toast
         message={toast.message}
