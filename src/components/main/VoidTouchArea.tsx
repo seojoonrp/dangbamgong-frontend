@@ -12,7 +12,7 @@ import * as Haptics from "expo-haptics";
 import { Colors } from "../../constants/colors";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const LONG_PRESS_DURATION = 1200;
+const LONG_PRESS_DURATION = 1000;
 
 interface Props {
   mode: "tap" | "longPress";

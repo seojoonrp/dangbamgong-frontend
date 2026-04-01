@@ -14,6 +14,7 @@ export default function TabsLayout() {
       tabBar={(props) => <BottomTab {...props} />}
       screenOptions={{
         headerShown: false,
+        tabBarStyle: { position: "absolute" },
       }}
     >
       <Tabs.Screen name="main" options={{ title: "메인" }} />

@@ -11,10 +11,11 @@ export const tokenStorage = {
 };
 
 export const client = axios.create({
-  // baseURL: "http://172.30.1.28:8000/api/v1", // 데스크탑
-  baseURL: "http://172.30.1.98:8000/api/v1", // 노트북
+  // Development build는 env를 못 박아넣음...
+  baseURL: "http://172.30.1.28:8001/api/v1", // 데스크탑
+  // baseURL: "http://172.30.1.98:8000/api/v1", // 노트북
 
-  timeout: 7000,
+  timeout: 5000,
   headers: { "Content-Type": "application/json" },
 });
 

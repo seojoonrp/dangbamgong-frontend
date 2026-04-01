@@ -22,6 +22,20 @@ export function useChangeNickname() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (nickname: string) => changeNickname(nickname),
+    onMutate: async (nickname) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.user.me() });
+      const previous = queryClient.getQueryData(queryKeys.user.me());
+      queryClient.setQueryData(queryKeys.user.me(), (old: any) => {
+        if (!old) return old;
+        return { ...old, nickname };
+      });
+      return { previous };
+    },
+    onError: (_err, _nickname, context) => {
+      if (context?.previous !== undefined) {
+        queryClient.setQueryData(queryKeys.user.me(), context.previous);
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.user.me() });
     },
@@ -32,6 +46,23 @@ export function useUpdateSettings() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (req: UpdateSettingsRequest) => updateSettings(req),
+    onMutate: async (req) => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.user.me() });
+      const previous = queryClient.getQueryData(queryKeys.user.me());
+      queryClient.setQueryData(queryKeys.user.me(), (old: any) => {
+        if (!old) return old;
+        return {
+          ...old,
+          notificationSettings: { ...old.notificationSettings, ...req },
+        };
+      });
+      return { previous };
+    },
+    onError: (_err, _req, context) => {
+      if (context?.previous !== undefined) {
+        queryClient.setQueryData(queryKeys.user.me(), context.previous);
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.user.me() });
     },
