@@ -29,7 +29,8 @@
               "kakao530e24f8a651a9b1f408a12044cdc1ef"
             ]
           }
-        ]
+        ],
+        "UIBackgroundModes": ["remote-notification"]
       }
     },
     "plugins": [
