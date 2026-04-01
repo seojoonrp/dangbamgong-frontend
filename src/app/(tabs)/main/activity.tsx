@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -25,6 +25,7 @@ import {
 import { formatRelativeTime } from "../../../lib/dateUtils";
 import type { ActivityItem } from "../../../types/dto/activities";
 import LoadingView from "../../../components/shared/LoadingView";
+import Toast from "../../../components/shared/Toast";
 
 type SortMode = "recent" | "count";
 
@@ -36,6 +37,19 @@ export default function ActivityScreen() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setToastVisible(true);
+  };
+
+  useEffect(() => {
+    if (deleteMutation.isSuccess) {
+      showToast("활동이 삭제되었습니다");
+    }
+  }, [deleteMutation.isSuccess]);
 
   const activities = [...(data?.activities ?? [])];
   if (sortMode === "recent") {
@@ -69,7 +83,12 @@ export default function ActivityScreen() {
     }
     updateMutation.mutate(
       { activityId, name: trimmed },
-      { onSuccess: () => setEditingId(null) },
+      {
+        onSuccess: () => {
+          setEditingId(null);
+          showToast("활동 이름이 수정되었습니다");
+        },
+      },
     );
   };
 
@@ -244,6 +263,12 @@ export default function ActivityScreen() {
       {showAddModal && (
         <AddActivityModal onClose={() => setShowAddModal(false)} />
       )}
+
+      <Toast
+        message={toastMessage}
+        visible={toastVisible}
+        onHide={() => setToastVisible(false)}
+      />
     </SafeAreaView>
   );
 }

@@ -26,7 +26,7 @@ export default function SearchResultItem({
       <SwipeActions
         actions={[
           {
-            label: "차단 해제",
+            label: "차단\n해제",
             color: Colors.point.coral,
             onPress: () => {
               swipeableRef.current?.close();
@@ -49,7 +49,7 @@ export default function SearchResultItem({
           <Text style={styles.tag}>#{user.tag}</Text>
         </View>
         <View style={[styles.statusBtn, styles.blockedStatusBtn]}>
-          <Text style={styles.blockedStatusText}>차단된 유저</Text>
+          <Text style={styles.blockedStatusText}>차단한 유저</Text>
         </View>
       </SwipeableCard>
     );
@@ -161,6 +161,7 @@ const styles = StyleSheet.create({
   blockedStatusBtn: {
     backgroundColor: Colors.black.light,
     borderWidth: 1,
+    borderRightWidth: 0,
     borderColor: Colors.point.coral,
   },
   blockedStatusText: {
@@ -171,7 +172,9 @@ const styles = StyleSheet.create({
   friendStatusBtn: {
     backgroundColor: Colors.black.light,
     borderWidth: 1,
-    borderColor: Colors.text.mid,
+    borderRightWidth: 0,
+    borderColor: Colors.text.dark,
+    width: 100,
   },
   friendStatusText: {
     color: Colors.text.mid,
@@ -181,6 +184,7 @@ const styles = StyleSheet.create({
   sentStatusBtn: {
     backgroundColor: Colors.black.light,
     borderWidth: 1,
+    borderRightWidth: 0,
     borderColor: Colors.text.dark,
   },
   sentStatusText: {

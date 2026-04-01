@@ -16,7 +16,7 @@ interface SentRequest {
     nickname: string;
     tag: string;
   };
-  status: "pending" | "rejected";
+  status: "PENDING" | "REJECTED";
   createdAt: string;
 }
 
@@ -29,14 +29,14 @@ export default function SentRequestItem({ request, onSuccess }: Props) {
   const swipeableRef = useRef<SwipeableMethods>(null);
   const deleteMutation = useDeleteFriendRequest();
 
-  const isRejected = request.status === "rejected";
+  const isRejected = request.status === "REJECTED";
 
   const handleDelete = () => {
     swipeableRef.current?.close();
     deleteMutation.mutate(request.requestId, {
       onSuccess: () =>
         onSuccess(
-          isRejected ? "성공적으로 삭제되었습니다." : "성공적으로 취소되었습니다.",
+          isRejected ? "요청이 삭제되었습니다." : "요청이 취소되었습니다.",
         ),
     });
   };
@@ -68,12 +68,7 @@ export default function SentRequestItem({ request, onSuccess }: Props) {
           <Text style={styles.tag}>#{request.receiver.tag}</Text>
         </View>
       </View>
-      <View
-        style={[
-          styles.statusBtn,
-          isRejected && styles.statusBtnRejected,
-        ]}
-      >
+      <View style={[styles.statusBtn, isRejected && styles.statusBtnRejected]}>
         {isRejected ? (
           <Text style={styles.statusTextRejected}>거절됨</Text>
         ) : (

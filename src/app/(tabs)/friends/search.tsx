@@ -27,6 +27,7 @@ export default function FriendSearchScreen() {
     message: "",
   });
   const [sentRequestIds, setSentRequestIds] = useState<Set<string>>(new Set());
+  const [unblockedIds, setUnblockedIds] = useState<Set<string>>(new Set());
 
   const debouncedQuery = useDebounce(query.trim(), 1000);
   const { data, isLoading } = useSearchUsers(debouncedQuery);
@@ -66,10 +67,16 @@ export default function FriendSearchScreen() {
   };
 
   const handleUnblock = async (userId: string) => {
+    setUnblockedIds((prev) => new Set(prev).add(userId));
     try {
       await unblockUser.mutateAsync(userId);
       showToast("차단 해제되었습니다.");
     } catch {
+      setUnblockedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(userId);
+        return next;
+      });
       showToast("차단 해제에 실패했습니다.");
     }
   };
@@ -78,6 +85,7 @@ export default function FriendSearchScreen() {
     .map((u) => ({
       ...u,
       hasSentRequest: u.hasSentRequest || sentRequestIds.has(u.userId),
+      isBlocked: u.isBlocked && !unblockedIds.has(u.userId),
     }))
     .sort((a, b) => a.tag.localeCompare(b.tag));
 

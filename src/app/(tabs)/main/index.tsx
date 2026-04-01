@@ -25,6 +25,7 @@ import {
 } from "../../../hooks/useVoid";
 import { useHomeStats } from "../../../hooks/useStats";
 import { useUnreadCount } from "../../../hooks/useNotifications";
+import Toast from "../../../components/shared/Toast";
 import { useVoidHistory } from "../../../hooks/useVoid";
 import { getTargetDay } from "../../../lib/dateUtils";
 import type { VoidEndResponse } from "../../../types/dto/void";
@@ -42,6 +43,7 @@ export default function MainScreen() {
   );
   const [showAddCard, setShowAddCard] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [toastVisible, setToastVisible] = useState(false);
 
   const startVoid = useStartVoid();
   const endVoidMutation = useEndVoid();
@@ -131,7 +133,10 @@ export default function MainScreen() {
       {
         text: "취소하기",
         style: "destructive",
-        onPress: () => cancelVoidMutation.mutate(),
+        onPress: () =>
+          cancelVoidMutation.mutate(undefined, {
+            onSuccess: () => setToastVisible(true),
+          }),
       },
     ]);
   }, [cancelVoidMutation]);
@@ -238,6 +243,12 @@ export default function MainScreen() {
       <NotificationDrawer
         visible={showNotifications}
         onClose={() => setShowNotifications(false)}
+      />
+
+      <Toast
+        message="공백이 취소되었습니다"
+        visible={toastVisible}
+        onHide={() => setToastVisible(false)}
       />
     </SafeAreaView>
   );

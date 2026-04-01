@@ -4,6 +4,7 @@ import type {
   FriendRequestType,
   SendFriendRequestResponse,
   ReceivedRequestsResponse,
+  SentRequestsResponse,
   UnreadRequestCountResponse,
 } from "../../types/dto/friends";
 
@@ -20,11 +21,15 @@ export async function sendFriendRequest(
 }
 
 export async function getFriendRequests(
+  type: "received",
+): Promise<ReceivedRequestsResponse>;
+export async function getFriendRequests(
+  type: "sent",
+): Promise<SentRequestsResponse>;
+export async function getFriendRequests(
   type: FriendRequestType,
-): Promise<ReceivedRequestsResponse> {
-  return client.get<never, ReceivedRequestsResponse>("/friends/requests", {
-    params: { type },
-  });
+): Promise<ReceivedRequestsResponse | SentRequestsResponse> {
+  return client.get("/friends/requests", { params: { type } });
 }
 
 export async function acceptFriendRequest(requestId: string): Promise<void> {

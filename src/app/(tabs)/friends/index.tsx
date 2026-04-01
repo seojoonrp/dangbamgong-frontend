@@ -27,7 +27,8 @@ import FriendsIcon from "../../../../assets/icons/header/friends.svg";
 import PlusIcon from "../../../../assets/icons/shared/plus.svg";
 import {
   useFriends,
-  useFriendRequests,
+  useReceivedFriendRequests,
+  useSentFriendRequests,
   useUnreadRequestCount,
   useMarkRequestsAsRead,
 } from "../../../hooks/useFriends";
@@ -76,8 +77,8 @@ export default function FriendsScreen() {
 
   const { data: friendsData, isLoading: friendsLoading } = useFriends();
   const { data: receivedData, isLoading: receivedLoading } =
-    useFriendRequests("received");
-  const { data: sentData, isLoading: sentLoading } = useFriendRequests("sent");
+    useReceivedFriendRequests();
+  const { data: sentData, isLoading: sentLoading } = useSentFriendRequests();
   const { data: unreadData } = useUnreadRequestCount();
   const { mutate: markAsRead } = useMarkRequestsAsRead();
 
@@ -175,8 +176,8 @@ export default function FriendsScreen() {
         </Text>
         <FlatList
           data={sentData?.requests ?? []}
-          keyExtractor={(item: any) => item.requestId}
-          renderItem={({ item }: { item: any }) => (
+          keyExtractor={(item) => item.requestId}
+          renderItem={({ item }) => (
             <SentRequestItem request={item} onSuccess={handleSuccess} />
           )}
           contentContainerStyle={styles.listContent}

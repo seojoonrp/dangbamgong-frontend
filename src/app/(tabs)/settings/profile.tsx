@@ -7,6 +7,8 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../../../constants/colors";
@@ -14,12 +16,14 @@ import ScreenHeader from "../../../components/navigation/ScreenHeader";
 import { useMe, useChangeNickname } from "../../../hooks/useUser";
 import LoadingView from "../../../components/shared/LoadingView";
 import EditIcon from "../../../../assets/icons/shared/edit.svg";
+import Toast from "../../../components/shared/Toast";
 
 export default function ProfileScreen() {
   const { data: user, isLoading } = useMe();
   const changeNickname = useChangeNickname();
   const [editing, setEditing] = useState(false);
   const [nickname, setNickname] = useState("");
+  const [toastVisible, setToastVisible] = useState(false);
 
   if (isLoading || !user) return <LoadingView />;
 
@@ -39,74 +43,83 @@ export default function ProfileScreen() {
     try {
       await changeNickname.mutateAsync(nickname.trim());
       setEditing(false);
+      setToastVisible(true);
     } catch {
       Alert.alert("오류", "닉네임 변경에 실패했습니다.");
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScreenHeader title="프로필" />
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <SafeAreaView style={styles.container}>
+        <ScreenHeader title="프로필" />
 
-      <View style={styles.content}>
-        {/* 닉네임 */}
-        <View style={styles.row}>
-          <Text style={styles.label}>닉네임</Text>
-          {editing ? (
-            <View style={styles.editInputRow}>
-              <TextInput
-                style={styles.input}
-                value={nickname}
-                onChangeText={setNickname}
-                maxLength={15}
-                autoFocus
-                placeholderTextColor={Colors.text.dark}
-              />
-              <Pressable
-                style={[
-                  styles.saveBtn,
-                  (!isValid || changeNickname.isPending) &&
-                    styles.saveBtnDisabled,
-                ]}
-                onPress={handleSave}
-                disabled={!isValid || changeNickname.isPending}
-              >
-                {changeNickname.isPending ? (
-                  <ActivityIndicator color={Colors.white} size="small" />
-                ) : (
-                  <Text style={styles.saveBtnText}>저장</Text>
-                )}
-              </Pressable>
-            </View>
-          ) : (
-            <View style={styles.valueRow}>
-              <Text style={styles.value}>{user.nickname}</Text>
-              <Pressable onPress={startEdit} style={styles.editBtn}>
-                <EditIcon width={12} height={12} color={Colors.white} />
-              </Pressable>
-            </View>
-          )}
+        <View style={styles.content}>
+          {/* 닉네임 */}
+          <View style={styles.row}>
+            <Text style={styles.label}>닉네임</Text>
+            {editing ? (
+              <View style={styles.editInputRow}>
+                <TextInput
+                  style={styles.input}
+                  value={nickname}
+                  onChangeText={setNickname}
+                  maxLength={15}
+                  autoFocus
+                  placeholderTextColor={Colors.text.dark}
+                />
+                <Pressable
+                  style={[
+                    styles.saveBtn,
+                    (!isValid || changeNickname.isPending) &&
+                      styles.saveBtnDisabled,
+                  ]}
+                  onPress={handleSave}
+                  disabled={!isValid || changeNickname.isPending}
+                >
+                  {changeNickname.isPending ? (
+                    <ActivityIndicator color={Colors.white} size="small" />
+                  ) : (
+                    <Text style={styles.saveBtnText}>저장</Text>
+                  )}
+                </Pressable>
+              </View>
+            ) : (
+              <View style={styles.valueRow}>
+                <Text style={styles.value}>{user.nickname}</Text>
+                <Pressable onPress={startEdit} style={styles.editBtn}>
+                  <EditIcon width={12} height={12} color={Colors.white} />
+                </Pressable>
+              </View>
+            )}
+          </View>
+
+          {/* 태그 */}
+          <View style={styles.row}>
+            <Text style={styles.label}>태그</Text>
+            <Text style={[styles.value, styles.valueTracking]}>#{user.tag}</Text>
+          </View>
+
+          {/* 가입 경로 */}
+          <View style={styles.row}>
+            <Text style={styles.label}>가입 경로</Text>
+            <Text style={styles.value}>
+              {user.socialProvider === "GOOGLE"
+                ? "Google"
+                : user.socialProvider === "KAKAO"
+                  ? "Kakao"
+                  : "Apple"}
+            </Text>
+          </View>
         </View>
 
-        {/* 태그 */}
-        <View style={styles.row}>
-          <Text style={styles.label}>태그</Text>
-          <Text style={[styles.value, styles.valueTracking]}>#{user.tag}</Text>
-        </View>
-
-        {/* 가입 경로 */}
-        <View style={styles.row}>
-          <Text style={styles.label}>가입 경로</Text>
-          <Text style={styles.value}>
-            {user.socialProvider === "GOOGLE"
-              ? "Google"
-              : user.socialProvider === "KAKAO"
-                ? "Kakao"
-                : "Apple"}
-          </Text>
-        </View>
-      </View>
-    </SafeAreaView>
+        <Toast
+          message="닉네임이 변경되었습니다"
+          visible={toastVisible}
+          onHide={() => setToastVisible(false)}
+        />
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 }
 

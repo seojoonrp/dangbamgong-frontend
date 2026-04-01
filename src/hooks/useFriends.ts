@@ -15,6 +15,8 @@ import {
 import type {
   FriendRequestType,
   FriendListResponse,
+  ReceivedRequestsResponse,
+  SentRequestsResponse,
   UnreadRequestCountResponse,
 } from "../types/dto/friends";
 
@@ -26,10 +28,18 @@ export function useFriends() {
   });
 }
 
-export function useFriendRequests(type: FriendRequestType) {
+export function useReceivedFriendRequests() {
   return useQuery({
-    queryKey: queryKeys.friends.requests(type),
-    queryFn: () => getFriendRequests(type),
+    queryKey: queryKeys.friends.requests("received"),
+    queryFn: () => getFriendRequests("received"),
+    refetchInterval: 60_000,
+  });
+}
+
+export function useSentFriendRequests() {
+  return useQuery({
+    queryKey: queryKeys.friends.requests("sent"),
+    queryFn: () => getFriendRequests("sent"),
     refetchInterval: 60_000,
   });
 }

@@ -15,12 +15,14 @@ import { Colors } from "../../../constants/colors";
 import ScreenHeader from "../../../components/navigation/ScreenHeader";
 import { useMe, useUpdateSettings } from "../../../hooks/useUser";
 import LoadingView from "../../../components/shared/LoadingView";
+import Toast from "../../../components/shared/Toast";
 import TriangleIcon from "../../../../assets/icons/settings/triangle.svg";
 
 export default function PushSettingsScreen() {
   const { data: user, isLoading } = useMe();
   const updateSettings = useUpdateSettings();
   const isFocused = useIsFocused();
+  const [toastVisible, setToastVisible] = useState(false);
   const [permissionGranted, setPermissionGranted] = useState<boolean | null>(
     null,
   );
@@ -111,6 +113,7 @@ export default function PushSettingsScreen() {
       {
         onSuccess: () => {
           setLocalSettings(null);
+          setToastVisible(true);
         },
       },
     );
@@ -259,6 +262,12 @@ export default function PushSettingsScreen() {
           </Pressable>
         </View>
       </View>
+
+      <Toast
+        message="푸시 알림 설정이 변경되었습니다"
+        visible={toastVisible}
+        onHide={() => setToastVisible(false)}
+      />
     </SafeAreaView>
   );
 }

@@ -33,6 +33,17 @@ export interface ReceivedRequestsResponse {
   requests: ReceivedRequestItem[];
 }
 
+export interface SentRequestItem {
+  requestId: string;
+  receiver: UserSearchItem;
+  status: "PENDING" | "REJECTED";
+  createdAt: string;
+}
+
+export interface SentRequestsResponse {
+  requests: SentRequestItem[];
+}
+
 export interface UnreadRequestCountResponse {
   count: number;
 }

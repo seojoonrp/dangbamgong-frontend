@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   View,
   Text,
@@ -14,18 +15,23 @@ import { formatRelativeTime } from "../../../lib/dateUtils";
 import LoadingView from "../../../components/shared/LoadingView";
 import { SwipeableCard } from "../../../components/friends/SwipeableCard";
 import type { BlockItem } from "../../../types/dto/users";
+import Toast from "../../../components/shared/Toast";
 
 export default function BlockListScreen() {
   const { data, isLoading } = useBlockList();
   const unblockMutation = useUnblockUser();
   const blocks = data?.blocks ?? [];
+  const [toastVisible, setToastVisible] = useState(false);
 
   const handleUnblock = (user: BlockItem) => {
     Alert.alert("차단 해제", `${user.nickname}님의 차단을 해제하시겠습니까?`, [
       { text: "취소", style: "cancel" },
       {
         text: "해제",
-        onPress: () => unblockMutation.mutate(user.userId),
+        onPress: () =>
+          unblockMutation.mutate(user.userId, {
+            onSuccess: () => setToastVisible(true),
+          }),
       },
     ]);
   };
@@ -70,6 +76,11 @@ export default function BlockListScreen() {
         ListEmptyComponent={
           <Text style={styles.emptyText}>차단한 유저가 없습니다.</Text>
         }
+      />
+      <Toast
+        message="차단이 해제되었습니다."
+        visible={toastVisible}
+        onHide={() => setToastVisible(false)}
       />
     </SafeAreaView>
   );
