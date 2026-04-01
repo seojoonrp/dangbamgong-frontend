@@ -20,7 +20,11 @@ interface Props {
   onSuccess: (message: string) => void;
 }
 
-export default function ReceivedRequestItem({ request, onError, onSuccess }: Props) {
+export default function ReceivedRequestItem({
+  request,
+  onError,
+  onSuccess,
+}: Props) {
   const swipeableRef = useRef<SwipeableMethods>(null);
   const acceptMutation = useAcceptFriendRequest();
   const rejectMutation = useRejectFriendRequest();
@@ -125,6 +129,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 36,
     backgroundColor: Colors.black.light,
     borderWidth: 1,
+    borderRightWidth: 0,
     borderColor: Colors.text.dark,
     justifyContent: "center",
     alignItems: "center",

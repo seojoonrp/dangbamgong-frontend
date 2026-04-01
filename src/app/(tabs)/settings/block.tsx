@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useSharedValue } from "react-native-reanimated";
+import { useQueryClient } from "@tanstack/react-query";
 import { Colors } from "../../../constants/colors";
 import ScreenHeader from "../../../components/navigation/ScreenHeader";
 import { useBlockList, useUnblockUser } from "../../../hooks/useUser";
@@ -16,12 +18,20 @@ import LoadingView from "../../../components/shared/LoadingView";
 import { SwipeableCard } from "../../../components/friends/SwipeableCard";
 import type { BlockItem } from "../../../types/dto/users";
 import Toast from "../../../components/shared/Toast";
+import PullToRefreshView from "../../../components/shared/PullToRefreshView";
+import { queryKeys } from "../../../lib/queryKeys";
 
 export default function BlockListScreen() {
+  const queryClient = useQueryClient();
   const { data, isLoading } = useBlockList();
   const unblockMutation = useUnblockUser();
   const blocks = data?.blocks ?? [];
   const [toastVisible, setToastVisible] = useState(false);
+  const scrollOffsetY = useSharedValue(0);
+
+  const handleRefresh = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: queryKeys.user.blocks() });
+  }, [queryClient]);
 
   const handleUnblock = (user: BlockItem) => {
     Alert.alert("차단 해제", `${user.nickname}님의 차단을 해제하시겠습니까?`, [
@@ -41,42 +51,48 @@ export default function BlockListScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScreenHeader title="차단 목록" />
-      <Text style={styles.countText}>차단한 유저 {blocks.length}명</Text>
-      <FlatList
-        data={blocks}
-        keyExtractor={(item) => item.userId}
-        renderItem={({ item }) => (
-          <SwipeableCard
-            renderRightActions={() => null}
-            innerStyle={styles.innerContent}
-          >
-            <View style={styles.info}>
-              <Text style={styles.nickname}>{item.nickname}</Text>
-              <View style={styles.subRow}>
-                <Text style={styles.time}>
-                  {formatRelativeTime(item.blockedAt)} 차단함
-                </Text>
-                <Text style={styles.tag}>#{item.tag}</Text>
-              </View>
-            </View>
-            <Pressable
-              style={styles.actionBtn}
-              onPress={() => handleUnblock(item)}
-              disabled={unblockMutation.isPending}
+      <PullToRefreshView onRefresh={handleRefresh} scrollOffsetY={scrollOffsetY}>
+        <Text style={styles.countText}>차단한 유저 {blocks.length}명</Text>
+        <FlatList
+          data={blocks}
+          keyExtractor={(item) => item.userId}
+          renderItem={({ item }) => (
+            <SwipeableCard
+              renderRightActions={() => null}
+              innerStyle={styles.innerContent}
             >
-              <View style={styles.actionTextWrap}>
-                <Text style={styles.actionText}>차단</Text>
-                <Text style={styles.actionText}>해제</Text>
+              <View style={styles.info}>
+                <Text style={styles.nickname}>{item.nickname}</Text>
+                <View style={styles.subRow}>
+                  <Text style={styles.time}>
+                    {formatRelativeTime(item.blockedAt)} 차단함
+                  </Text>
+                  <Text style={styles.tag}>#{item.tag}</Text>
+                </View>
               </View>
-            </Pressable>
-          </SwipeableCard>
-        )}
-        contentContainerStyle={styles.listContent}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        ListEmptyComponent={
-          <Text style={styles.emptyText}>차단한 유저가 없습니다.</Text>
-        }
-      />
+              <Pressable
+                style={styles.actionBtn}
+                onPress={() => handleUnblock(item)}
+                disabled={unblockMutation.isPending}
+              >
+                <View style={styles.actionTextWrap}>
+                  <Text style={styles.actionText}>차단</Text>
+                  <Text style={styles.actionText}>해제</Text>
+                </View>
+              </Pressable>
+            </SwipeableCard>
+          )}
+          contentContainerStyle={styles.listContent}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>차단한 유저가 없습니다.</Text>
+          }
+          onScroll={({ nativeEvent }) => {
+            scrollOffsetY.value = nativeEvent.contentOffset.y;
+          }}
+          scrollEventThrottle={16}
+        />
+      </PullToRefreshView>
       <Toast
         message="차단이 해제되었습니다."
         visible={toastVisible}

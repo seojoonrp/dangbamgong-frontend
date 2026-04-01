@@ -1,13 +1,7 @@
-import { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  FlatList,
-  StyleSheet,
-  ActivityIndicator,
-} from "react-native";
+import { useState, useCallback } from "react";
+import { View, Text, TextInput, FlatList, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useSharedValue } from "react-native-reanimated";
 import { Colors } from "../../../constants/colors";
 import { Layout } from "../../../constants/layout";
 import ScreenHeader from "../../../components/navigation/ScreenHeader";
@@ -19,6 +13,8 @@ import { useSearchUsers, useUnblockUser } from "../../../hooks/useUser";
 import { useSendFriendRequest } from "../../../hooks/useFriends";
 import { ApiError } from "../../../api/client";
 import type { UserSearchItem } from "../../../types/dto/users";
+import LoadingView from "../../../components/shared/LoadingView";
+import PullToRefreshView from "../../../components/shared/PullToRefreshView";
 
 export default function FriendSearchScreen() {
   const [query, setQuery] = useState("");
@@ -30,9 +26,14 @@ export default function FriendSearchScreen() {
   const [unblockedIds, setUnblockedIds] = useState<Set<string>>(new Set());
 
   const debouncedQuery = useDebounce(query.trim(), 1000);
-  const { data, isLoading } = useSearchUsers(debouncedQuery);
+  const { data, isLoading, refetch } = useSearchUsers(debouncedQuery);
   const sendRequest = useSendFriendRequest();
   const unblockUser = useUnblockUser();
+  const scrollOffsetY = useSharedValue(0);
+
+  const handleRefresh = useCallback(async () => {
+    if (debouncedQuery.length > 0) await refetch();
+  }, [debouncedQuery, refetch]);
 
   const showToast = (message: string) => {
     setToast({ visible: true, message });
@@ -122,31 +123,40 @@ export default function FriendSearchScreen() {
         />
       </View>
 
-      {isLoading && hasQuery ? (
-        <ActivityIndicator color={Colors.white} style={{ marginTop: 40 }} />
-      ) : hasQuery && hasResults ? (
-        <>
-          <Text style={styles.resultCount}>검색 결과 {users.length}개</Text>
-          <FlatList
-            data={users}
-            keyExtractor={(item) => item.userId}
-            renderItem={renderItem}
-            contentContainerStyle={styles.listContent}
-            ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-          />
-        </>
-      ) : hasQuery && !hasResults ? (
-        <View style={styles.centerContainer}>
-          <Text style={styles.emptyText}>검색 결과가 없습니다.</Text>
-        </View>
-      ) : (
-        <View style={styles.centerContainer}>
-          <Text style={styles.hintText}>
-            <Text style={styles.hintBold}>[설정] → [프로필]</Text>
-            에서{"\n"}태그를 확인할 수 있어요!
-          </Text>
-        </View>
-      )}
+      <PullToRefreshView
+        onRefresh={handleRefresh}
+        scrollOffsetY={hasQuery && hasResults ? scrollOffsetY : undefined}
+      >
+        {isLoading && hasQuery ? (
+          <LoadingView />
+        ) : hasQuery && hasResults ? (
+          <>
+            <Text style={styles.resultCount}>검색 결과 {users.length}개</Text>
+            <FlatList
+              data={users}
+              keyExtractor={(item) => item.userId}
+              renderItem={renderItem}
+              contentContainerStyle={styles.listContent}
+              ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+              onScroll={({ nativeEvent }) => {
+                scrollOffsetY.value = nativeEvent.contentOffset.y;
+              }}
+              scrollEventThrottle={16}
+            />
+          </>
+        ) : hasQuery && !hasResults ? (
+          <View style={styles.centerContainer}>
+            <Text style={styles.emptyText}>검색 결과가 없습니다.</Text>
+          </View>
+        ) : (
+          <View style={styles.centerContainer}>
+            <Text style={styles.hintText}>
+              <Text style={styles.hintBold}>[설정] → [프로필]</Text>
+              에서{"\n"}태그를 확인할 수 있어요!
+            </Text>
+          </View>
+        )}
+      </PullToRefreshView>
 
       <Toast
         message={toast.message}

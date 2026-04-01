@@ -11,6 +11,7 @@ interface Props {
   homeStats?: HomeStatResponse;
   endResult?: VoidEndResponse | null;
   hasVoidHistory: boolean;
+  elapsedLabel?: string | null;
 }
 
 export default function HomeStatsBar({
@@ -18,6 +19,7 @@ export default function HomeStatsBar({
   homeStats,
   endResult,
   hasVoidHistory,
+  elapsedLabel,
 }: Props) {
   const renderContent = () => {
     if (voidState === "ended") {
@@ -35,6 +37,11 @@ export default function HomeStatsBar({
     if (voidState === "inVoid") {
       return (
         <>
+          {elapsedLabel && (
+            <Text style={[styles.stat, styles.elapsedText]}>
+              {elapsedLabel}
+            </Text>
+          )}
           <Text style={styles.stat}>
             현재 {homeStats?.currentVoidCount ?? 0}명이 공백 중이에요.
           </Text>
@@ -54,8 +61,8 @@ export default function HomeStatsBar({
             보냈어요.
           </Text>
           <Text style={styles.statSub}>
-            {homeStats.totalSleptUsers ?? 0}명 중 {homeStats.myRank ?? 0}번째로 긴
-            공백이었습니다.
+            {homeStats.totalSleptUsers ?? 0}명 중 {homeStats.myRank ?? 0}번째로
+            긴 공백이었습니다.
           </Text>
         </>
       );
@@ -93,5 +100,10 @@ const styles = StyleSheet.create({
     color: Colors.text.light,
     fontSize: 14,
     fontFamily: "A2Z-Regular",
+  },
+  elapsedText: {
+    color: Colors.point.coral,
+    fontFamily: "A2Z-Medium",
+    marginBottom: 12,
   },
 });

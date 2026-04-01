@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,9 +7,10 @@ import {
   Pressable,
   StyleSheet,
   Alert,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useSharedValue } from "react-native-reanimated";
+import { useQueryClient } from "@tanstack/react-query";
 import { Colors } from "../../../constants/colors";
 import { Layout } from "../../../constants/layout";
 import ScreenHeader from "../../../components/navigation/ScreenHeader";
@@ -26,10 +27,13 @@ import { formatRelativeTime } from "../../../lib/dateUtils";
 import type { ActivityItem } from "../../../types/dto/activities";
 import LoadingView from "../../../components/shared/LoadingView";
 import Toast from "../../../components/shared/Toast";
+import PullToRefreshView from "../../../components/shared/PullToRefreshView";
+import { queryKeys } from "../../../lib/queryKeys";
 
 type SortMode = "recent" | "count";
 
 export default function ActivityScreen() {
+  const queryClient = useQueryClient();
   const { data, isLoading } = useActivities();
   const updateMutation = useUpdateActivity();
   const deleteMutation = useDeleteActivity();
@@ -39,6 +43,13 @@ export default function ActivityScreen() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const scrollOffsetY = useSharedValue(0);
+
+  const handleRefresh = useCallback(async () => {
+    await queryClient.invalidateQueries({
+      queryKey: queryKeys.activities.list(),
+    });
+  }, [queryClient]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -199,66 +210,77 @@ export default function ActivityScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScreenHeader title="활동 관리" />
-
-      <View style={styles.toolbar}>
-        <View style={styles.chipRow}>
-          <Pressable
-            style={[
-              styles.chip,
-              sortMode === "recent" ? styles.chipActive : styles.chipInactive,
-            ]}
-            onPress={() => setSortMode("recent")}
-          >
-            <Text
+      <PullToRefreshView
+        onRefresh={handleRefresh}
+        scrollOffsetY={scrollOffsetY}
+      >
+        <View style={styles.toolbar}>
+          <View style={styles.chipRow}>
+            <Pressable
               style={[
-                styles.chipText,
-                sortMode === "recent"
-                  ? styles.chipTextActive
-                  : styles.chipTextInactive,
+                styles.chip,
+                sortMode === "recent" ? styles.chipActive : styles.chipInactive,
               ]}
+              onPress={() => setSortMode("recent")}
             >
-              최근 사용 순
-            </Text>
-          </Pressable>
-          <Pressable
-            style={[
-              styles.chip,
-              sortMode === "count" ? styles.chipActive : styles.chipInactive,
-            ]}
-            onPress={() => setSortMode("count")}
-          >
-            <Text
+              <Text
+                style={[
+                  styles.chipText,
+                  sortMode === "recent"
+                    ? styles.chipTextActive
+                    : styles.chipTextInactive,
+                ]}
+              >
+                최근 사용 순
+              </Text>
+            </Pressable>
+            <Pressable
               style={[
-                styles.chipText,
-                sortMode === "count"
-                  ? styles.chipTextActive
-                  : styles.chipTextInactive,
+                styles.chip,
+                sortMode === "count" ? styles.chipActive : styles.chipInactive,
               ]}
+              onPress={() => setSortMode("count")}
             >
-              사용 횟수 순
-            </Text>
+              <Text
+                style={[
+                  styles.chipText,
+                  sortMode === "count"
+                    ? styles.chipTextActive
+                    : styles.chipTextInactive,
+                ]}
+              >
+                사용 횟수 순
+              </Text>
+            </Pressable>
+          </View>
+          <Pressable
+            style={styles.addBtn}
+            onPress={() => setShowAddModal(true)}
+          >
+            <PlusIcon width={13} height={13} color={Colors.white} />
           </Pressable>
         </View>
-        <Pressable style={styles.addBtn} onPress={() => setShowAddModal(true)}>
-          <PlusIcon width={13} height={13} color={Colors.white} />
-        </Pressable>
-      </View>
 
-      <Text style={styles.activityCount}>{activities.length}개의 활동</Text>
+        <Text style={styles.activityCount}>{activities.length}개의 활동</Text>
 
-      {isLoading ? (
-        <LoadingView />
-      ) : (
-        <FlatList
-          data={activities}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>등록된 활동이 없습니다.</Text>
-          }
-        />
-      )}
+        {isLoading ? (
+          <LoadingView />
+        ) : (
+          <FlatList
+            data={activities}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={
+              <Text style={styles.emptyText}>등록된 활동이 없습니다.</Text>
+            }
+            onScroll={({ nativeEvent }) => {
+              scrollOffsetY.value = nativeEvent.contentOffset.y;
+            }}
+            scrollEventThrottle={16}
+          />
+        )}
+      </PullToRefreshView>
 
       {showAddModal && (
         <AddActivityModal onClose={() => setShowAddModal(false)} />

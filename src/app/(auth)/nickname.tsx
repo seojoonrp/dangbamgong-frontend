@@ -5,7 +5,6 @@ import {
   TextInput,
   StyleSheet,
   Pressable,
-  ActivityIndicator,
   Alert,
   Keyboard,
   KeyboardAvoidingView,
@@ -14,6 +13,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { Colors } from "../../constants/colors";
+import Spinner from "../../components/shared/Spinner";
 import { setNickname } from "../../api/services/auth";
 import { useAuth } from "../../lib/AuthContext";
 import SleepImage from "../../../assets/images/sleep.svg";
@@ -95,7 +95,7 @@ export default function NicknameScreen() {
             disabled={!isValid || loading}
           >
             {loading ? (
-              <ActivityIndicator color={Colors.white} />
+              <Spinner />
             ) : (
               <Text
                 style={[

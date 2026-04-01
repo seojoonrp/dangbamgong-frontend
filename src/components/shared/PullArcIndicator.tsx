@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { View, StyleSheet } from "react-native";
 import Animated, {
   useSharedValue,
@@ -6,6 +5,11 @@ import Animated, {
   withRepeat,
   withTiming,
   Easing,
+  interpolate,
+  useDerivedValue,
+  useAnimatedReaction,
+  cancelAnimation,
+  withDelay,
 } from "react-native-reanimated";
 import type { SharedValue } from "react-native-reanimated";
 import { Colors } from "../../constants/colors";
@@ -17,60 +21,95 @@ const HOLE_SIZE = SIZE - BORDER_WIDTH * 2;
 
 interface PullArcIndicatorProps {
   progress: SharedValue<number>;
-  isSpinning: SharedValue<boolean>;
+  isSpinning: SharedValue<number>;
 }
 
 export default function PullArcIndicator({
   progress,
   isSpinning,
 }: PullArcIndicatorProps) {
-  const spinRotation = useSharedValue(0);
+  const rotation = useSharedValue(0);
+  const shrinkRotation = useSharedValue(0);
 
-  useEffect(() => {
-    spinRotation.value = withRepeat(
-      withTiming(360, {
-        duration: 800,
-        easing: Easing.bezier(0.5, 0.2, 0.5, 0.8),
-      }),
-      -1,
-      false,
-    );
-  }, []);
+  useAnimatedReaction(
+    () => isSpinning.value,
+    (currentVal, prevVal) => {
+      const isNowSpinning = currentVal > 0.1;
+      const wasSpinning = (prevVal ?? 0) > 0.1;
 
-  // 오른쪽 반원: progress 0→0.5 에서 -180°→0°
-  const rightDiscStyle = useAnimatedStyle(() => {
-    const rot = Math.min(progress.value * 2, 1) * 180 - 180;
-    const finalRot = isSpinning.value ? spinRotation.value : rot;
-    return {
-      transform: [{ rotate: `${finalRot}deg` }],
-    };
+      if (isNowSpinning && !wasSpinning) {
+        shrinkRotation.value = withTiming(270, {
+          duration: 200,
+          easing: Easing.out(Easing.quad),
+        });
+
+        rotation.value = 0;
+        rotation.value = withDelay(
+          200,
+          withRepeat(
+            withTiming(360, {
+              duration: 800,
+              easing: Easing.linear,
+            }),
+            -1,
+            false,
+          ),
+        );
+      } else if (!isNowSpinning && wasSpinning) {
+        cancelAnimation(rotation);
+        cancelAnimation(shrinkRotation);
+      }
+
+      if (currentVal < 0.01) {
+        rotation.value = 0;
+        shrinkRotation.value = 0;
+      }
+    },
+  );
+
+  const arcProgress = useDerivedValue(() => {
+    return interpolate(isSpinning.value, [0, 1], [progress.value, 0.25]);
   });
 
-  // 왼쪽 반원: progress 0.5→1.0 에서 -180°→0°
+  const rightDiscStyle = useAnimatedStyle(() => {
+    const rot = Math.min(arcProgress.value * 2, 1) * 180 - 180;
+    return { transform: [{ rotate: `${rot}deg` }] };
+  });
+
   const leftDiscStyle = useAnimatedStyle(() => {
-    const rot = Math.max(progress.value * 2 - 1, 0) * 180 - 180;
-    // 스피너 모드에서는 왼쪽도 같이 회전하면 안 됨 (오른쪽 반원만 스피너처럼 보임)
+    const rot = Math.max(arcProgress.value * 2 - 1, 0) * 180 - 180;
+    return { transform: [{ rotate: `${rot}deg` }] };
+  });
+
+  const spinnerContainerStyle = useAnimatedStyle(() => {
     return {
-      transform: [{ rotate: `${rot}deg` }],
+      transform: [
+        { rotate: `${shrinkRotation.value}deg` },
+        { rotate: `${rotation.value}deg` },
+      ],
     };
   });
 
   return (
     <View style={styles.container}>
-      {/* 배경 링 */}
       <View style={styles.backgroundRing} />
 
-      {/* 오른쪽 클립: 오른쪽 절반만 표시 */}
-      <View style={styles.rightClip}>
-        <Animated.View style={[styles.disc, styles.rightDisc, rightDiscStyle]} />
-      </View>
+      <Animated.View style={[StyleSheet.absoluteFill, spinnerContainerStyle]}>
+        <View style={styles.rightClip}>
+          <Animated.View
+            style={[styles.disc, styles.rightDisc, rightDiscStyle]}
+          >
+            <View style={styles.rightHalf} />
+          </Animated.View>
+        </View>
 
-      {/* 왼쪽 클립: 왼쪽 절반만 표시 */}
-      <View style={styles.leftClip}>
-        <Animated.View style={[styles.disc, styles.leftDisc, leftDiscStyle]} />
-      </View>
+        <View style={styles.leftClip}>
+          <Animated.View style={[styles.disc, styles.leftDisc, leftDiscStyle]}>
+            <View style={styles.leftHalf} />
+          </Animated.View>
+        </View>
+      </Animated.View>
 
-      {/* 중앙 구멍: 링처럼 보이게 */}
       <View style={styles.hole} />
     </View>
   );
@@ -118,6 +157,20 @@ const styles = StyleSheet.create({
     width: SIZE,
     height: SIZE,
     borderRadius: HALF,
+    overflow: "hidden",
+  },
+  rightHalf: {
+    position: "absolute",
+    left: HALF,
+    width: HALF,
+    height: SIZE,
+    backgroundColor: Colors.white,
+  },
+  leftHalf: {
+    position: "absolute",
+    left: 0,
+    width: HALF,
+    height: SIZE,
     backgroundColor: Colors.white,
   },
   hole: {

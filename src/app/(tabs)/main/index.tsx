@@ -77,8 +77,8 @@ export default function MainScreen() {
   const elapsedLabel =
     elapsedMin > 0
       ? elapsedMin >= 60
-        ? `${Math.floor(elapsedMin / 60)}시간 ${elapsedMin % 60}분째 공백 중`
-        : `${elapsedMin}분째 공백 중`
+        ? `[ ${Math.floor(elapsedMin / 60)}시간 ${elapsedMin % 60}분째 공백 중 ]`
+        : `[ ${elapsedMin}분째 공백 중 ]`
       : null;
 
   const queryClient = useQueryClient();
@@ -149,7 +149,9 @@ export default function MainScreen() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.user.me() }),
       queryClient.invalidateQueries({ queryKey: queryKeys.stats.home() }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.void.history(targetDay) }),
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.void.history(targetDay),
+      }),
     ]);
   }, [queryClient, targetDay]);
 
@@ -202,16 +204,15 @@ export default function MainScreen() {
           {voidState === "awake" && (
             <VoidTouchArea mode="longPress" onAction={handleStartVoid}>
               {renderStateImage()}
-              <Text style={styles.hintText}>공백을 시작하려면 꾹 누르세요.</Text>
+              <Text style={styles.hintText}>
+                공백을 시작하려면 꾹 누르세요.
+              </Text>
             </VoidTouchArea>
           )}
 
           {/* inVoid 상태 */}
           {voidState === "inVoid" && (
             <VoidTouchArea mode="longPress" onAction={handleEndVoid}>
-              {elapsedLabel && (
-                <Text style={styles.elapsedText}>{elapsedLabel}</Text>
-              )}
               {renderStateImage()}
               <Text style={styles.activityLabel}>공백 동안 무엇을 했나요?</Text>
               <ActivitySelector
@@ -245,6 +246,7 @@ export default function MainScreen() {
           homeStats={homeStats}
           endResult={endResult}
           hasVoidHistory={hasVoidHistory}
+          elapsedLabel={elapsedLabel}
         />
       </View>
 
@@ -307,13 +309,6 @@ const styles = StyleSheet.create({
     bottom: Layout.bottomTabHeight,
     left: 0,
     right: 0,
-  },
-  elapsedText: {
-    color: Colors.white,
-    fontSize: 18,
-    fontFamily: "A2Z-Medium",
-    textAlign: "center" as const,
-    marginBottom: 20,
   },
   unreadDot: {
     position: "absolute",

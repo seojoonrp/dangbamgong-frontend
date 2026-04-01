@@ -1,24 +1,12 @@
 import { Redirect } from "expo-router";
-import { View, ActivityIndicator } from "react-native";
 import { useAuth } from "../lib/AuthContext";
-import { Colors } from "../constants/colors";
+import LoadingView from "../components/shared/LoadingView";
 
 export default function Index() {
   const { isAuthenticated, isNewUser, isLoading } = useAuth();
 
   if (isLoading) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: Colors.black.dark,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <ActivityIndicator color={Colors.white} />
-      </View>
-    );
+    return <LoadingView />;
   }
 
   if (!isAuthenticated) {

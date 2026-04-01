@@ -5,7 +5,6 @@ import {
   TextInput,
   Pressable,
   StyleSheet,
-  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
@@ -18,6 +17,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { Colors } from "../../constants/colors";
 import { useCreateActivity, useActivities } from "../../hooks/useActivities";
+import Spinner from "../shared/Spinner";
 
 interface Props {
   onClose: () => void;
@@ -116,7 +116,7 @@ export default function AddActivityCard({ onClose }: Props) {
               disabled={!isValid || createMutation.isPending}
             >
               {createMutation.isPending ? (
-                <ActivityIndicator color={Colors.white} size="small" />
+                <Spinner />
               ) : (
                 <Text style={styles.submitText}>추가하기</Text>
               )}

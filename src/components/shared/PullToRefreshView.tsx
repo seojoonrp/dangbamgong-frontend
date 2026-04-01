@@ -7,16 +7,13 @@ import Animated, {
   runOnJS,
 } from "react-native-reanimated";
 import type { SharedValue } from "react-native-reanimated";
-import {
-  Gesture,
-  GestureDetector,
-} from "react-native-gesture-handler";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import * as Haptics from "expo-haptics";
 import PullArcIndicator from "./PullArcIndicator";
 
-const MAX_DRAG = 80;
-const THRESHOLD = 60;
-const PULL_AREA_HEIGHT = 60;
+const MAX_DRAG = 100;
+const THRESHOLD = 100;
+const PULL_AREA_HEIGHT = 100;
 
 interface PullToRefreshViewProps {
   onRefresh: () => Promise<void>;
@@ -33,7 +30,7 @@ export default function PullToRefreshView({
 
   const dragY = useSharedValue(0);
   const pullProgress = useSharedValue(0);
-  const isSpinning = useSharedValue(false);
+  const isSpinning = useSharedValue(0);
   const thresholdMet = useSharedValue(false);
   const pullAreaH = useSharedValue(0);
 
@@ -53,7 +50,7 @@ export default function PullToRefreshView({
     if (!refreshing) return;
     onRefresh().finally(() => {
       setRefreshing(false);
-      isSpinning.value = false;
+      isSpinning.value = withTiming(0, { duration: 200 });
       dragY.value = withTiming(0, { duration: 400 });
       pullAreaH.value = withTiming(0, { duration: 400 });
       pullProgress.value = withTiming(0, { duration: 400 });
@@ -70,18 +67,20 @@ export default function PullToRefreshView({
 
       const clamped = Math.min(Math.max(0, e.translationY), MAX_DRAG);
       dragY.value = clamped;
-      pullAreaH.value = clamped > 0 ? PULL_AREA_HEIGHT : 0;
+      pullAreaH.value = clamped;
       pullProgress.value = Math.min(clamped / THRESHOLD, 1);
 
       if (clamped >= THRESHOLD && !thresholdMet.value) {
         thresholdMet.value = true;
         runOnJS(hapticImpact)();
+      } else if (clamped < THRESHOLD && thresholdMet.value) {
+        thresholdMet.value = false;
       }
     })
     .onEnd(() => {
       "worklet";
       if (thresholdMet.value && !isSpinning.value) {
-        isSpinning.value = true;
+        isSpinning.value = withTiming(1, { duration: 200 });
         dragY.value = PULL_AREA_HEIGHT;
         pullAreaH.value = PULL_AREA_HEIGHT;
         runOnJS(hapticSuccess)();

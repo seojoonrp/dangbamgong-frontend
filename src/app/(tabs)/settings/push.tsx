@@ -11,14 +11,18 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Notifications from "expo-notifications";
 import { useIsFocused } from "@react-navigation/native";
+import { useQueryClient } from "@tanstack/react-query";
 import { Colors } from "../../../constants/colors";
 import ScreenHeader from "../../../components/navigation/ScreenHeader";
 import { useMe, useUpdateSettings } from "../../../hooks/useUser";
 import LoadingView from "../../../components/shared/LoadingView";
 import Toast from "../../../components/shared/Toast";
 import TriangleIcon from "../../../../assets/icons/settings/triangle.svg";
+import PullToRefreshView from "../../../components/shared/PullToRefreshView";
+import { queryKeys } from "../../../lib/queryKeys";
 
 export default function PushSettingsScreen() {
+  const queryClient = useQueryClient();
   const { data: user, isLoading } = useMe();
   const updateSettings = useUpdateSettings();
   const isFocused = useIsFocused();
@@ -35,6 +39,11 @@ export default function PushSettingsScreen() {
   useEffect(() => {
     if (isFocused) checkPermission();
   }, [isFocused, checkPermission]);
+
+  const handleRefresh = useCallback(async () => {
+    await checkPermission();
+    await queryClient.invalidateQueries({ queryKey: queryKeys.user.me() });
+  }, [queryClient, checkPermission]);
 
   const [localSettings, setLocalSettings] = useState<{
     voidReminder: boolean;
@@ -73,24 +82,26 @@ export default function PushSettingsScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <ScreenHeader title="푸시 알림 설정" />
-        <View style={styles.placeholderWrapper}>
-          <Text style={styles.placeholderTitle}>알림이 꺼져 있어요</Text>
-          <Text style={styles.placeholderDesc}>
-            푸시 알림을 받으려면 기기 설정에서{"\n"}알림을 허용해 주세요.
-          </Text>
-          <Pressable
-            style={styles.openSettingsButton}
-            onPress={() => {
-              if (Platform.OS === "ios") {
-                Linking.openURL("app-settings:");
-              } else {
-                Linking.openSettings();
-              }
-            }}
-          >
-            <Text style={styles.openSettingsText}>설정으로 이동</Text>
-          </Pressable>
-        </View>
+        <PullToRefreshView onRefresh={handleRefresh}>
+          <View style={styles.placeholderWrapper}>
+            <Text style={styles.placeholderTitle}>알림이 꺼져 있어요</Text>
+            <Text style={styles.placeholderDesc}>
+              푸시 알림을 받으려면 기기 설정에서{"\n"}알림을 허용해 주세요.
+            </Text>
+            <Pressable
+              style={styles.openSettingsButton}
+              onPress={() => {
+                if (Platform.OS === "ios") {
+                  Linking.openURL("app-settings:");
+                } else {
+                  Linking.openSettings();
+                }
+              }}
+            >
+              <Text style={styles.openSettingsText}>설정으로 이동</Text>
+            </Pressable>
+          </View>
+        </PullToRefreshView>
       </SafeAreaView>
     );
   }
@@ -126,6 +137,7 @@ export default function PushSettingsScreen() {
     <SafeAreaView style={styles.container}>
       <ScreenHeader title="푸시 알림 설정" />
 
+      <PullToRefreshView onRefresh={handleRefresh}>
       <View style={styles.content}>
         {/* 오랜 공백 알림 */}
         <View style={styles.section}>
@@ -262,6 +274,7 @@ export default function PushSettingsScreen() {
           </Pressable>
         </View>
       </View>
+      </PullToRefreshView>
 
       <Toast
         message="푸시 알림 설정이 변경되었습니다"

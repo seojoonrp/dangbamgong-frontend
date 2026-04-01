@@ -32,8 +32,12 @@ export default function StatsScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      setCurrentDay(getTargetDay());
-    }, [])
+      const today = getTargetDay();
+      setCurrentDay(today);
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.stats.daily(today),
+      });
+    }, [queryClient]),
   );
 
   const { data: dailyStats, isLoading: dailyLoading } =
@@ -46,20 +50,22 @@ export default function StatsScreen() {
   const stats = USE_MOCK ? MOCK_DAILY_STATS : dailyStats;
 
   const handleRefresh = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: queryKeys.stats.daily(currentDay) });
+    await queryClient.invalidateQueries({
+      queryKey: queryKeys.stats.daily(currentDay),
+    });
   }, [queryClient, currentDay]);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <TabHeader icon={StatsIcon} title="Statistics" />
 
-      <DateNavigator
-        currentDay={currentDay}
-        minDate={MIN_DATE}
-        onDayChange={setCurrentDay}
-      />
-
       <PullToRefreshView onRefresh={handleRefresh}>
+        <DateNavigator
+          currentDay={currentDay}
+          minDate={MIN_DATE}
+          onDayChange={setCurrentDay}
+        />
+
         {isLoading ? (
           <LoadingView />
         ) : (

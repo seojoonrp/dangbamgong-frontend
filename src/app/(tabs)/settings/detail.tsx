@@ -1,13 +1,22 @@
+import { useCallback } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useQueryClient } from "@tanstack/react-query";
 import { Colors } from "../../../constants/colors";
 import ScreenHeader from "../../../components/navigation/ScreenHeader";
 import { useMyStats } from "../../../hooks/useStats";
 import { formatDuration } from "../../../lib/dateUtils";
 import LoadingView from "../../../components/shared/LoadingView";
+import PullToRefreshView from "../../../components/shared/PullToRefreshView";
+import { queryKeys } from "../../../lib/queryKeys";
 
 export default function StatDetailScreen() {
+  const queryClient = useQueryClient();
   const { data, isLoading } = useMyStats();
+
+  const handleRefresh = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: queryKeys.stats.me() });
+  }, [queryClient]);
 
   if (isLoading) return <LoadingView />;
 
@@ -15,6 +24,7 @@ export default function StatDetailScreen() {
     <SafeAreaView style={styles.container}>
       <ScreenHeader title="세부 공백 통계" />
 
+      <PullToRefreshView onRefresh={handleRefresh}>
       <View style={styles.content}>
         <View style={styles.row}>
           <Text style={styles.label}>총 공백 시간</Text>
@@ -39,6 +49,7 @@ export default function StatDetailScreen() {
           </Text>
         </View>
       </View>
+      </PullToRefreshView>
     </SafeAreaView>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,9 @@ import Animated, {
   withTiming,
   runOnJS,
 } from "react-native-reanimated";
+import { useQueryClient } from "@tanstack/react-query";
+import PullToRefreshView from "../shared/PullToRefreshView";
+import { queryKeys } from "../../lib/queryKeys";
 import { Colors } from "../../constants/colors";
 import { Layout } from "../../constants/layout";
 import {
@@ -36,7 +39,9 @@ interface Props {
 }
 
 export default function NotificationDrawer({ visible, onClose }: Props) {
+  const queryClient = useQueryClient();
   const translateX = useSharedValue(SCREEN_WIDTH);
+  const scrollOffsetY = useSharedValue(0);
   const [shouldRender, setShouldRender] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { data } = useNotifications();
@@ -46,6 +51,10 @@ export default function NotificationDrawer({ visible, onClose }: Props) {
   const deleteAllRead = useDeleteAllRead();
 
   const insets = useSafeAreaInsets();
+
+  const handleRefresh = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: queryKeys.notifications.list() });
+  }, [queryClient]);
 
   const notifications = data?.notifications ?? [];
   const hasReadNotifications = notifications.some((n) => n.isRead);
@@ -152,15 +161,21 @@ export default function NotificationDrawer({ visible, onClose }: Props) {
             </Text>
           </Pressable>
         </View>
-        <FlatList
-          data={notifications}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>알림이 없습니다.</Text>
-          }
-        />
+        <PullToRefreshView onRefresh={handleRefresh} scrollOffsetY={scrollOffsetY}>
+          <FlatList
+            data={notifications}
+            keyExtractor={(item) => item.id}
+            renderItem={renderItem}
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={
+              <Text style={styles.emptyText}>알림이 없습니다.</Text>
+            }
+            onScroll={({ nativeEvent }) => {
+              scrollOffsetY.value = nativeEvent.contentOffset.y;
+            }}
+            scrollEventThrottle={16}
+          />
+        </PullToRefreshView>
         <View
           style={[
             styles.bottomSection,

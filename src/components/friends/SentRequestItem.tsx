@@ -120,6 +120,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 36,
     backgroundColor: Colors.black.light,
     borderWidth: 1,
+    borderRightWidth: 0,
     borderColor: Colors.text.dark,
     justifyContent: "center",
     alignItems: "center",

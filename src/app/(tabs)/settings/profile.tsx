@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,24 +6,32 @@ import {
   Pressable,
   StyleSheet,
   Alert,
-  ActivityIndicator,
   Keyboard,
   TouchableWithoutFeedback,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useQueryClient } from "@tanstack/react-query";
 import { Colors } from "../../../constants/colors";
 import ScreenHeader from "../../../components/navigation/ScreenHeader";
 import { useMe, useChangeNickname } from "../../../hooks/useUser";
 import LoadingView from "../../../components/shared/LoadingView";
+import Spinner from "../../../components/shared/Spinner";
 import EditIcon from "../../../../assets/icons/shared/edit.svg";
 import Toast from "../../../components/shared/Toast";
+import PullToRefreshView from "../../../components/shared/PullToRefreshView";
+import { queryKeys } from "../../../lib/queryKeys";
 
 export default function ProfileScreen() {
+  const queryClient = useQueryClient();
   const { data: user, isLoading } = useMe();
   const changeNickname = useChangeNickname();
   const [editing, setEditing] = useState(false);
   const [nickname, setNickname] = useState("");
   const [toastVisible, setToastVisible] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: queryKeys.user.me() });
+  }, [queryClient]);
 
   if (isLoading || !user) return <LoadingView />;
 
@@ -54,6 +62,7 @@ export default function ProfileScreen() {
       <SafeAreaView style={styles.container}>
         <ScreenHeader title="프로필" />
 
+        <PullToRefreshView onRefresh={handleRefresh}>
         <View style={styles.content}>
           {/* 닉네임 */}
           <View style={styles.row}>
@@ -78,7 +87,7 @@ export default function ProfileScreen() {
                   disabled={!isValid || changeNickname.isPending}
                 >
                   {changeNickname.isPending ? (
-                    <ActivityIndicator color={Colors.white} size="small" />
+                    <Spinner />
                   ) : (
                     <Text style={styles.saveBtnText}>저장</Text>
                   )}
@@ -112,6 +121,7 @@ export default function ProfileScreen() {
             </Text>
           </View>
         </View>
+        </PullToRefreshView>
 
         <Toast
           message="닉네임이 변경되었습니다"
