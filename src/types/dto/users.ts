@@ -12,6 +12,7 @@ export interface UserMeResponse {
   socialProvider: string;
   isInVoid: boolean;
   currentVoidStartedAt: string;
+  createdAt: string;
   notificationSettings: NotificationSettings;
 }
 

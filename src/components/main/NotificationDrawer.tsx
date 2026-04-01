@@ -5,7 +5,6 @@ import {
   FlatList,
   Pressable,
   StyleSheet,
-  Dimensions,
 } from "react-native";
 import Animated, {
   useSharedValue,
@@ -18,6 +17,7 @@ import PullToRefreshView from "../shared/PullToRefreshView";
 import { queryKeys } from "../../lib/queryKeys";
 import { Colors } from "../../constants/colors";
 import { Layout } from "../../constants/layout";
+import { useContainerWidth } from "../../hooks/useContainerWidth";
 import {
   useNotifications,
   useMarkAsRead,
@@ -30,9 +30,6 @@ import type { NotificationItem } from "../../types/dto/notifications";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BellIcon from "../../../assets/icons/header/notifications.svg";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const DRAWER_WIDTH = SCREEN_WIDTH * 0.75;
-
 interface Props {
   visible: boolean;
   onClose: () => void;
@@ -40,7 +37,9 @@ interface Props {
 
 export default function NotificationDrawer({ visible, onClose }: Props) {
   const queryClient = useQueryClient();
-  const translateX = useSharedValue(SCREEN_WIDTH);
+  const containerWidth = useContainerWidth();
+  const drawerWidth = containerWidth * 0.75;
+  const translateX = useSharedValue(containerWidth);
   const scrollOffsetY = useSharedValue(0);
   const [shouldRender, setShouldRender] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -63,13 +62,13 @@ export default function NotificationDrawer({ visible, onClose }: Props) {
   useEffect(() => {
     if (visible) setShouldRender(true);
     translateX.value = withTiming(
-      visible ? SCREEN_WIDTH - DRAWER_WIDTH : SCREEN_WIDTH,
+      visible ? containerWidth - drawerWidth : containerWidth,
       { duration: 300 },
       (finished) => {
         if (finished && !visible) runOnJS(setShouldRender)(false);
       },
     );
-  }, [visible]);
+  }, [visible, containerWidth, drawerWidth]);
 
   useEffect(() => {
     if (!visible) setSelectedId(null);
@@ -80,7 +79,7 @@ export default function NotificationDrawer({ visible, onClose }: Props) {
   }));
 
   const backdropStyle = useAnimatedStyle(() => {
-    const progress = (SCREEN_WIDTH - translateX.value) / DRAWER_WIDTH;
+    const progress = (containerWidth - translateX.value) / drawerWidth;
     return { opacity: progress * 0.5 };
   });
 
@@ -136,7 +135,7 @@ export default function NotificationDrawer({ visible, onClose }: Props) {
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
       </Animated.View>
       <Animated.View
-        style={[styles.drawer, drawerStyle, { paddingTop: insets.top }]}
+        style={[styles.drawer, drawerStyle, { width: drawerWidth, paddingTop: insets.top }]}
       >
         <View style={styles.drawerHeader}>
           <View style={styles.drawerTitleContainer}>
@@ -231,7 +230,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     bottom: 0,
-    width: DRAWER_WIDTH,
     backgroundColor: Colors.black.mid,
   },
   drawerHeader: {

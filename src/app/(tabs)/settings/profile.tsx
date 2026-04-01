@@ -120,6 +120,18 @@ export default function ProfileScreen() {
                   : "Apple"}
             </Text>
           </View>
+
+          {/* 가입일 */}
+          <View style={styles.row}>
+            <Text style={styles.label}>가입일</Text>
+            <Text style={styles.value}>
+              {new Date(user.createdAt).toLocaleDateString("ko-KR", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+              }).replace(/\. /g, "-").replace(/\.$/, "")}
+            </Text>
+          </View>
         </View>
         </PullToRefreshView>
 

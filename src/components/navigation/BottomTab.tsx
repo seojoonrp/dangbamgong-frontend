@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, Pressable, StyleSheet, useWindowDimensions } from "react-native";
+import { View, Pressable, StyleSheet } from "react-native";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import Animated, {
   useSharedValue,
@@ -14,6 +14,7 @@ import StatsIcon from "../../../assets/icons/navigation/stats.svg";
 import FriendsIcon from "../../../assets/icons/navigation/friends.svg";
 import SettingsIcon from "../../../assets/icons/navigation/settings.svg";
 import { Layout } from "../../constants/layout";
+import { useContainerWidth } from "../../hooks/useContainerWidth";
 
 const ICONS: Record<
   string,
@@ -37,8 +38,8 @@ export default function CustomTabBar({
   descriptors,
   navigation,
 }: BottomTabBarProps) {
-  const { width } = useWindowDimensions();
-  const tabWidth = (width - PADDING_HOR * 2) / TAB_COUNT;
+  const containerWidth = useContainerWidth();
+  const tabWidth = (containerWidth - PADDING_HOR * 2) / TAB_COUNT;
 
   const indicatorX = useSharedValue(state.index * tabWidth);
 

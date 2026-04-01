@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   Pressable,
-  useWindowDimensions,
 } from "react-native";
 import Animated, {
   useSharedValue,
@@ -18,6 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Colors } from "../../../constants/colors";
 import { Layout } from "../../../constants/layout";
+import { useContainerWidth } from "../../../hooks/useContainerWidth";
 import TabHeader from "../../../components/navigation/TabHeader";
 import FriendListItem from "../../../components/friends/FriendListItem";
 import ReceivedRequestItem from "../../../components/friends/ReceivedRequestItem";
@@ -50,8 +50,8 @@ const INDICATOR_WIDTH = 96;
 
 export default function FriendsScreen() {
   const [activeTab, setActiveTab] = useState<FriendTab>("list");
-  const { width: screenWidth } = useWindowDimensions();
-  const tabWidth = (screenWidth - TABS_PADDING_HOR * 2) / TAB_COUNT;
+  const containerWidth = useContainerWidth();
+  const tabWidth = (containerWidth - TABS_PADDING_HOR * 2) / TAB_COUNT;
 
   const tabIndex = TABS.findIndex((t) => t.key === activeTab);
   const indicatorX = useSharedValue(
