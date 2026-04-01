@@ -1,5 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { View, Text, Pressable, StyleSheet, Alert } from "react-native";
+import { View, Text, Pressable, StyleSheet, Alert, Dimensions } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  runOnJS,
+} from "react-native-reanimated";
 import ReanimatedSwipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import type { SwipeableMethods } from "react-native-gesture-handler/ReanimatedSwipeable";
 import { Colors } from "../../constants/colors";
@@ -18,6 +24,8 @@ interface Props {
   onForceRefresh: () => void;
 }
 
+const SCREEN_WIDTH = Dimensions.get("window").width;
+
 export default function FriendListItem({
   friend,
   onSuccess,
@@ -29,6 +37,36 @@ export default function FriendListItem({
   const blockMutation = useBlockUser();
   const { canNudge, recordNudge, getRemainingSeconds } = useNudgeCooldown();
   const [remainingSec, setRemainingSec] = useState(0);
+  const translateX = useSharedValue(0);
+  const opacity = useSharedValue(1);
+  const itemHeight = useSharedValue(90);
+  const pendingActionRef = useRef<() => void>(() => {});
+
+  const executePending = () => pendingActionRef.current();
+
+  const animateOut = (action: () => void) => {
+    pendingActionRef.current = action;
+    translateX.value = withTiming(-SCREEN_WIDTH, { duration: 280 });
+    opacity.value = withTiming(0, { duration: 280 }, (finished) => {
+      "worklet";
+      if (finished) {
+        itemHeight.value = withTiming(0, { duration: 200 }, (heightFinished) => {
+          "worklet";
+          if (heightFinished) runOnJS(executePending)();
+        });
+      }
+    });
+  };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+    opacity: opacity.value,
+  }));
+
+  const animatedContainerStyle = useAnimatedStyle(() => ({
+    height: itemHeight.value,
+    overflow: "hidden",
+  }));
 
   const nudgeAvailable = canNudge(friend.userId);
 
@@ -71,17 +109,18 @@ export default function FriendListItem({
       {
         text: "삭제",
         style: "destructive",
-        onPress: async () => {
-          try {
-            await removeMutation.mutateAsync(friend.userId);
-            onSuccess("성공적으로 삭제되었습니다.");
-          } catch (e) {
-            if (e instanceof ApiError && e.code === "NOT_FRIENDS") {
-              Alert.alert("오류", "친구가 아닌 유저입니다.");
-              onForceRefresh();
+        onPress: () =>
+          animateOut(async () => {
+            try {
+              await removeMutation.mutateAsync(friend.userId);
+              onSuccess("성공적으로 삭제되었습니다.");
+            } catch (e) {
+              if (e instanceof ApiError && e.code === "NOT_FRIENDS") {
+                Alert.alert("오류", "친구가 아닌 유저입니다.");
+                onForceRefresh();
+              }
             }
-          }
-        },
+          }),
       },
     ]);
   };
@@ -94,9 +133,11 @@ export default function FriendListItem({
         text: "차단",
         style: "destructive",
         onPress: () =>
-          blockMutation.mutate(friend.userId, {
-            onSuccess: () => onSuccess("성공적으로 차단되었습니다."),
-          }),
+          animateOut(() =>
+            blockMutation.mutate(friend.userId, {
+              onSuccess: () => onSuccess("성공적으로 차단되었습니다."),
+            }),
+          ),
       },
     ]);
   };
@@ -118,6 +159,8 @@ export default function FriendListItem({
 
   if (friend.isInVoid) {
     return (
+      <Animated.View style={animatedContainerStyle}>
+      <Animated.View style={animatedStyle}>
       <View style={styles.voidWrapper}>
         <View style={styles.voidIndicator} />
         <View style={styles.voidOuterContainer}>
@@ -160,10 +203,14 @@ export default function FriendListItem({
           </View>
         </View>
       </View>
+      </Animated.View>
+      </Animated.View>
     );
   }
 
   return (
+    <Animated.View style={animatedContainerStyle}>
+    <Animated.View style={animatedStyle}>
     <SwipeableCard
       ref={swipeableRef}
       height={90}
@@ -183,6 +230,8 @@ export default function FriendListItem({
         </View>
       </View>
     </SwipeableCard>
+    </Animated.View>
+    </Animated.View>
   );
 }
 

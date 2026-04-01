@@ -17,6 +17,7 @@ import {
   useDailyStats,
   usePrefetchAdjacentDayStats,
 } from "../../../hooks/useStats";
+import { useMe } from "../../../hooks/useUser";
 import { getTargetDay } from "../../../lib/dateUtils";
 import { MOCK_DAILY_STATS } from "../../../lib/mockStats";
 import LoadingView from "../../../components/shared/LoadingView";
@@ -40,6 +41,7 @@ export default function StatsScreen() {
     }, [queryClient]),
   );
 
+  const { data: me } = useMe();
   const { data: dailyStats, isLoading: dailyLoading } =
     useDailyStats(currentDay);
   usePrefetchAdjacentDayStats(currentDay, MIN_DATE);
@@ -48,6 +50,44 @@ export default function StatsScreen() {
   const isLoading = !USE_MOCK && dailyLoading;
 
   const stats = USE_MOCK ? MOCK_DAILY_STATS : dailyStats;
+
+  const isInVoid = isToday && !!me?.isInVoid && !!me?.currentVoidStartedAt;
+  const activeVoidStartedAt = isInVoid ? me!.currentVoidStartedAt : undefined;
+
+  // 진행 중 공백을 히스토그램에 반영 (해당 버킷 isMine: true, count +1)
+  const augmentedBuckets = (() => {
+    const base = stats?.buckets ?? [];
+    if (!isInVoid || !activeVoidStartedAt) return base;
+    const toOffset = (iso: string) => {
+      const d = new Date(iso);
+      const m = d.getHours() * 60 + d.getMinutes();
+      return m >= 960 ? m - 960 : m + 480;
+    };
+    const now = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const nowOffset = nowMin >= 960 ? nowMin - 960 : nowMin + 480;
+    const startBucket = Math.floor(toOffset(activeVoidStartedAt) / 20);
+    const endBucket = Math.floor(nowOffset / 20);
+    return base.map((b, i) =>
+      i >= startBucket && i <= endBucket
+        ? { ...b, isMine: true, count: b.count + 1 }
+        : b,
+    );
+  })();
+
+  // 진행 중 공백을 타임테이블에 반영 (현재 시각까지의 가상 세션 추가)
+  const augmentedSessions = (() => {
+    const base = stats?.mySessions ?? [];
+    if (!isInVoid || !activeVoidStartedAt) return base;
+    return [
+      ...base,
+      {
+        startedAt: activeVoidStartedAt,
+        endedAt: new Date().toISOString(),
+        activities: [],
+      },
+    ];
+  })();
 
   const handleRefresh = useCallback(async () => {
     await queryClient.invalidateQueries({
@@ -70,10 +110,13 @@ export default function StatsScreen() {
           <LoadingView />
         ) : (
           <View style={styles.content}>
-            <Histogram buckets={stats?.buckets ?? []} isToday={isToday} />
+            <Histogram buckets={augmentedBuckets} isToday={isToday} />
 
             <View style={styles.timetableSection}>
-              <Timetable sessions={stats?.mySessions ?? []} />
+              <Timetable
+                sessions={augmentedSessions}
+                activeVoidStartedAt={activeVoidStartedAt}
+              />
             </View>
 
             <StatsText

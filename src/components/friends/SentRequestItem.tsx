@@ -1,5 +1,11 @@
 import { useRef } from "react";
-import { View, Text, StyleSheet, Alert } from "react-native";
+import { View, Text, StyleSheet, Alert, Dimensions } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  runOnJS,
+} from "react-native-reanimated";
 import { Colors } from "../../constants/colors";
 import { formatRelativeTime } from "../../lib/dateUtils";
 import { useDeleteFriendRequest } from "../../hooks/useFriends";
@@ -27,24 +33,58 @@ interface Props {
   onForceRefresh: () => void;
 }
 
+const SCREEN_WIDTH = Dimensions.get("window").width;
+
 export default function SentRequestItem({ request, onSuccess, onForceRefresh }: Props) {
   const swipeableRef = useRef<SwipeableMethods>(null);
   const deleteMutation = useDeleteFriendRequest();
+  const translateX = useSharedValue(0);
+  const opacity = useSharedValue(1);
+  const itemHeight = useSharedValue(90);
+  const pendingActionRef = useRef<() => void>(() => {});
 
   const isRejected = request.status === "REJECTED";
 
+  const executePending = () => pendingActionRef.current();
+
+  const animateOut = (action: () => void) => {
+    pendingActionRef.current = action;
+    translateX.value = withTiming(-SCREEN_WIDTH, { duration: 280 });
+    opacity.value = withTiming(0, { duration: 280 }, (finished) => {
+      "worklet";
+      if (finished) {
+        itemHeight.value = withTiming(0, { duration: 200 }, (heightFinished) => {
+          "worklet";
+          if (heightFinished) runOnJS(executePending)();
+        });
+      }
+    });
+  };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+    opacity: opacity.value,
+  }));
+
+  const animatedContainerStyle = useAnimatedStyle(() => ({
+    height: itemHeight.value,
+    overflow: "hidden",
+  }));
+
   const handleDelete = () => {
     swipeableRef.current?.close();
-    deleteMutation.mutate(request.requestId, {
-      onSuccess: () =>
-        onSuccess(
-          isRejected ? "요청이 삭제되었습니다." : "요청이 취소되었습니다.",
-        ),
-      onError: (e) => {
-        if (e instanceof ApiError) Alert.alert("오류", "이미 처리된 친구 요청입니다.");
-        onForceRefresh();
-      },
-    });
+    animateOut(() =>
+      deleteMutation.mutate(request.requestId, {
+        onSuccess: () =>
+          onSuccess(
+            isRejected ? "요청이 삭제되었습니다." : "요청이 취소되었습니다.",
+          ),
+        onError: (e) => {
+          if (e instanceof ApiError) Alert.alert("오류", "이미 처리된 친구 요청입니다.");
+          onForceRefresh();
+        },
+      }),
+    );
   };
 
   const renderRightActions = () => (
@@ -60,6 +100,8 @@ export default function SentRequestItem({ request, onSuccess, onForceRefresh }: 
   );
 
   return (
+    <Animated.View style={animatedContainerStyle}>
+    <Animated.View style={animatedStyle}>
     <SwipeableCard
       ref={swipeableRef}
       renderRightActions={renderRightActions}
@@ -85,6 +127,8 @@ export default function SentRequestItem({ request, onSuccess, onForceRefresh }: 
         )}
       </View>
     </SwipeableCard>
+    </Animated.View>
+    </Animated.View>
   );
 }
 

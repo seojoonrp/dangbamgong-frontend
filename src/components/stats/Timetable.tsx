@@ -13,6 +13,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 interface Props {
   sessions: VoidSessionItem[];
+  activeVoidStartedAt?: string;
 }
 
 // 16시 기준 시간(0~23)을 실제 시(hour)로 변환
@@ -58,7 +59,7 @@ function formatWatermark(startedAt: string, endedAt: string): string[] {
   return lines;
 }
 
-export default function Timetable({ sessions }: Props) {
+export default function Timetable({ sessions, activeVoidStartedAt }: Props) {
   const scrollRef = useRef<ScrollView>(null);
 
   // 고정 스크롤 위치: 23:00 (16시 기준 7시간 오프셋) 부근이 보이도록
@@ -112,49 +113,64 @@ export default function Timetable({ sessions }: Props) {
             session.startedAt,
             session.endedAt,
           );
+          const isActive = session.startedAt === activeVoidStartedAt;
 
           return (
-            <View
-              key={i}
-              style={[
-                styles.sessionBlock,
-                { top, height, left: TIMELINE_LEFT, right: 0 },
-              ]}
-            >
-              {isLongSession && (
-                /* 워터마크 텍스트 */
-                <View style={styles.watermarkContainer}>
-                  {watermarkLines.map((line, j) => (
-                    <Text
-                      key={j}
-                      style={styles.watermarkText}
-                      allowFontScaling={false}
-                    >
-                      {line}
-                    </Text>
-                  ))}
-                </View>
-              )}
-
-              {/* 일러스트 */}
+            <View key={i}>
               <View
                 style={[
-                  styles.illustrationContainer,
-                  durationMin <= 100 && { bottom: -30 },
+                  styles.sessionBlock,
+                  { top, height, left: TIMELINE_LEFT, right: 0 },
+                  isActive && styles.sessionBlockActive,
                 ]}
               >
-                <VoidIllustration
-                  width={248}
-                  height={140}
-                  color={Colors.point.coral}
+                {isLongSession && (
+                  /* 워터마크 텍스트 */
+                  <View style={styles.watermarkContainer}>
+                    {watermarkLines.map((line, j) => (
+                      <Text
+                        key={j}
+                        style={styles.watermarkText}
+                        allowFontScaling={false}
+                      >
+                        {line}
+                      </Text>
+                    ))}
+                  </View>
+                )}
+
+                {/* 일러스트 */}
+                <View
+                  style={[
+                    styles.illustrationContainer,
+                    durationMin <= 100 && { bottom: -30 },
+                  ]}
+                >
+                  <VoidIllustration
+                    width={248}
+                    height={140}
+                    color={Colors.point.coral}
+                  />
+                </View>
+
+                {/* border overlay — 일러스트 위에 렌더 */}
+                <View
+                  style={[
+                    styles.borderOverlay,
+                    isActive && styles.borderOverlayActive,
+                  ]}
                 />
+
+                {/* 코랄 스트립 (오른쪽 끝) */}
+                {!isActive && <View style={styles.coralStrip} />}
               </View>
 
-              {/* border overlay — 일러스트 위에 렌더 */}
-              <View style={styles.borderOverlay} />
-
-              {/* 코랄 스트립 (오른쪽 끝) */}
-              <View style={styles.coralStrip} />
+              {/* 진행 중 세션 하단 coral 가로선 */}
+              {isActive && (
+                <View
+                  style={[styles.activeBottomLine, { top: top + height - 1 }]}
+                />
+              )}
             </View>
           );
         })}
@@ -200,6 +216,9 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 0,
     overflow: "hidden",
   },
+  sessionBlockActive: {
+    borderBottomLeftRadius: 0,
+  },
   borderOverlay: {
     position: "absolute",
     top: 0,
@@ -216,12 +235,22 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 0,
     borderBottomRightRadius: 0,
   },
+  borderOverlayActive: {
+    borderBottomLeftRadius: 0,
+  },
   coralStrip: {
     position: "absolute",
     right: 0,
     top: -1,
     bottom: -1,
-    width: 2,
+    width: 1.5,
+    backgroundColor: Colors.point.coral,
+  },
+  activeBottomLine: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    height: 1.5,
     backgroundColor: Colors.point.coral,
   },
   watermarkContainer: {

@@ -1,5 +1,11 @@
 import { useRef } from "react";
-import { View, Text, Pressable, StyleSheet, Alert } from "react-native";
+import { View, Text, Pressable, StyleSheet, Alert, Dimensions } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  runOnJS,
+} from "react-native-reanimated";
 import { Colors } from "../../constants/colors";
 import { formatRelativeTime } from "../../lib/dateUtils";
 import {
@@ -21,6 +27,8 @@ interface Props {
   onForceRefresh: () => void;
 }
 
+const SCREEN_WIDTH = Dimensions.get("window").width;
+
 export default function ReceivedRequestItem({
   request,
   onSuccess,
@@ -30,6 +38,36 @@ export default function ReceivedRequestItem({
   const acceptMutation = useAcceptFriendRequest();
   const rejectMutation = useRejectFriendRequest();
   const blockMutation = useBlockUser();
+  const translateX = useSharedValue(0);
+  const opacity = useSharedValue(1);
+  const itemHeight = useSharedValue(90);
+  const pendingActionRef = useRef<() => void>(() => {});
+
+  const executePending = () => pendingActionRef.current();
+
+  const animateOut = (action: () => void) => {
+    pendingActionRef.current = action;
+    translateX.value = withTiming(-SCREEN_WIDTH, { duration: 280 });
+    opacity.value = withTiming(0, { duration: 280 }, (finished) => {
+      "worklet";
+      if (finished) {
+        itemHeight.value = withTiming(0, { duration: 200 }, (heightFinished) => {
+          "worklet";
+          if (heightFinished) runOnJS(executePending)();
+        });
+      }
+    });
+  };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+    opacity: opacity.value,
+  }));
+
+  const animatedContainerStyle = useAnimatedStyle(() => ({
+    height: itemHeight.value,
+    overflow: "hidden",
+  }));
 
   const handleAccept = async () => {
     try {
@@ -48,13 +86,15 @@ export default function ReceivedRequestItem({
 
   const handleReject = () => {
     swipeableRef.current?.close();
-    rejectMutation.mutate(request.requestId, {
-      onSuccess: () => onSuccess("친구 요청을 거절했습니다."),
-      onError: (e) => {
-        if (e instanceof ApiError) Alert.alert("오류", "취소된 친구 요청입니다.");
-        onForceRefresh();
-      },
-    });
+    animateOut(() =>
+      rejectMutation.mutate(request.requestId, {
+        onSuccess: () => onSuccess("친구 요청을 거절했습니다."),
+        onError: (e) => {
+          if (e instanceof ApiError) Alert.alert("오류", "취소된 친구 요청입니다.");
+          onForceRefresh();
+        },
+      }),
+    );
   };
 
   const handleBlock = () => {
@@ -65,9 +105,11 @@ export default function ReceivedRequestItem({
         text: "차단",
         style: "destructive",
         onPress: () =>
-          blockMutation.mutate(request.sender.userId, {
-            onSuccess: () => onSuccess("성공적으로 차단되었습니다."),
-          }),
+          animateOut(() =>
+            blockMutation.mutate(request.sender.userId, {
+              onSuccess: () => onSuccess("성공적으로 차단되었습니다."),
+            }),
+          ),
       },
     ]);
   };
@@ -82,6 +124,8 @@ export default function ReceivedRequestItem({
   );
 
   return (
+    <Animated.View style={animatedContainerStyle}>
+    <Animated.View style={animatedStyle}>
     <SwipeableCard
       ref={swipeableRef}
       renderRightActions={renderRightActions}
@@ -104,6 +148,8 @@ export default function ReceivedRequestItem({
         <Text style={styles.acceptText}>수락</Text>
       </Pressable>
     </SwipeableCard>
+    </Animated.View>
+    </Animated.View>
   );
 }
 
