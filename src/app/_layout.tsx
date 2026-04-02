@@ -17,6 +17,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { queryClient } from "../lib/queryClient";
 import { AuthProvider } from "../lib/AuthContext";
 import { setupReactQueryFocus } from "../lib/reactQueryFocus";
+import { PortalProvider } from "@gorhom/portal";
 import { Colors } from "../constants/colors";
 
 SplashScreen.preventAutoHideAsync();
@@ -92,12 +93,14 @@ export default function RootLayout() {
       <View style={isIpadLandscape ? styles.ipadContainer : { flex: 1 }}>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <StatusBar style="light" />
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="index" />
-              <Stack.Screen name="(auth)" />
-              <Stack.Screen name="(tabs)" />
-            </Stack>
+            <PortalProvider>
+              <StatusBar style="light" />
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="(tabs)" />
+              </Stack>
+            </PortalProvider>
           </AuthProvider>
         </QueryClientProvider>
       </View>

@@ -191,7 +191,7 @@ export default function SettingsScreen() {
                         // 디바이스 토큰 삭제 실패해도 탈퇴 진행
                       }
                       await withdraw();
-                      await logout();
+                      await logout({ skipDeviceToken: true });
                       router.replace("/(auth)/landing");
                     } catch {
                       Alert.alert("오류", "탈퇴 처리에 실패했습니다.");

@@ -20,6 +20,8 @@ const TOTAL_BUCKETS = 72; // 16:00 ~ 다음날 16:00, 20분 간격
 const CHART_WIDTH = TOTAL_BUCKETS * BAR_TOTAL;
 const BAR_ANIM_DURATION = 400;
 const BAR_STAGGER_DELAY = 8;
+const SELECTED_COLOR_MINE = "rgb(218, 15, 59)";
+const SELECTED_COLOR_OTHER = "#d4d4d4";
 
 interface Props {
   buckets: BucketItem[];
@@ -32,10 +34,12 @@ function AnimatedBar({
   targetHeight,
   isMine,
   index,
+  selected,
 }: {
   targetHeight: number;
   isMine: boolean;
   index: number;
+  selected: boolean;
 }) {
   const height = useSharedValue(0);
   const colorProgress = useSharedValue(isMine ? 1 : 0);
@@ -65,7 +69,22 @@ function AnimatedBar({
     ),
   }));
 
-  return <Animated.View style={[styles.bar, animStyle]} />;
+  return (
+    <Animated.View style={[styles.bar, animStyle, { overflow: "hidden" }]}>
+      {selected && (
+        <View
+          style={[
+            StyleSheet.absoluteFillObject,
+            {
+              backgroundColor: isMine
+                ? SELECTED_COLOR_MINE
+                : SELECTED_COLOR_OTHER,
+            },
+          ]}
+        />
+      )}
+    </Animated.View>
+  );
 }
 
 export default function Histogram({ buckets, isToday }: Props) {
@@ -186,15 +205,8 @@ export default function Histogram({ buckets, isToday }: Props) {
                     targetHeight={targetHeight}
                     isMine={bucket.isMine}
                     index={i}
+                    selected={selectedIndex === i}
                   />
-                  {selectedIndex === i && (
-                    <View
-                      style={[
-                        StyleSheet.absoluteFillObject,
-                        { backgroundColor: "rgba(0,0,0,0.1)" },
-                      ]}
-                    />
-                  )}
                 </Pressable>
               );
             })}
@@ -247,6 +259,7 @@ const styles = StyleSheet.create({
     width: BAR_TOTAL,
     height: MAX_BAR_HEIGHT,
     justifyContent: "flex-end",
+    overflow: "hidden",
   },
   bar: {
     width: BAR_WIDTH,

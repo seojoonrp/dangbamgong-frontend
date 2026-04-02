@@ -21,7 +21,7 @@ interface AuthState {
 
 interface AuthContextValue extends AuthState {
   login: (response: LoginResponse) => void;
-  logout: () => Promise<void>;
+  logout: (options?: { skipDeviceToken?: boolean }) => Promise<void>;
   setAuthenticated: () => void;
 }
 
@@ -66,15 +66,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const logout = useCallback(async () => {
+  const logout = useCallback(async (options?: { skipDeviceToken?: boolean }) => {
     // 서버에서 디바이스 토큰 제거 (푸시 알림 중단)
-    try {
-      if (Device.isDevice) {
-        const pushToken = await Notifications.getExpoPushTokenAsync();
-        await deleteDeviceToken(pushToken.data);
+    if (!options?.skipDeviceToken) {
+      try {
+        if (Device.isDevice) {
+          const pushToken = await Notifications.getExpoPushTokenAsync();
+          await deleteDeviceToken(pushToken.data);
+        }
+      } catch {
+        // 토큰 삭제 실패해도 로그아웃은 진행
       }
-    } catch {
-      // 토큰 삭제 실패해도 로그아웃은 진행
     }
 
     await tokenStorage.removeToken();

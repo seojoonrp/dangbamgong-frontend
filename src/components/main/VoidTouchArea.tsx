@@ -10,8 +10,6 @@ import Animated, {
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { Colors } from "../../constants/colors";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-
 const LONG_PRESS_DURATION = 1000;
 
 interface Props {
@@ -23,8 +21,6 @@ interface Props {
 export default function VoidTouchArea({ mode, onAction, children }: Props) {
   const progress = useSharedValue(0);
   const isPressed = useSharedValue(false);
-
-  const insets = useSafeAreaInsets();
 
   const handleComplete = useCallback(() => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -66,7 +62,7 @@ export default function VoidTouchArea({ mode, onAction, children }: Props) {
     >
       <View style={styles.children}>{children}</View>
       {mode === "longPress" && (
-        <View style={[styles.progressTrack, { bottom: -insets.bottom }]}>
+        <View style={styles.progressTrack}>
           <Animated.View style={[styles.progressFill, barStyle]} />
         </View>
       )}
