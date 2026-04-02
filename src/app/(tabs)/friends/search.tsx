@@ -10,7 +10,10 @@ import Toast from "../../../components/shared/Toast";
 import SearchIcon from "../../../../assets/icons/shared/search.svg";
 import { useDebounce } from "../../../hooks/useDebounce";
 import { useSearchUsers, useUnblockUser } from "../../../hooks/useUser";
-import { useSendFriendRequest } from "../../../hooks/useFriends";
+import {
+  useSendFriendRequest,
+  useAcceptFriendRequest,
+} from "../../../hooks/useFriends";
 import { ApiError } from "../../../api/client";
 import type { UserSearchItem } from "../../../types/dto/users";
 import LoadingView from "../../../components/shared/LoadingView";
@@ -23,11 +26,15 @@ export default function FriendSearchScreen() {
     message: "",
   });
   const [sentRequestIds, setSentRequestIds] = useState<Set<string>>(new Set());
+  const [acceptedUserIds, setAcceptedUserIds] = useState<Set<string>>(
+    new Set()
+  );
   const [unblockedIds, setUnblockedIds] = useState<Set<string>>(new Set());
 
   const debouncedQuery = useDebounce(query.trim(), 1000);
   const { data, isLoading, refetch } = useSearchUsers(debouncedQuery);
   const sendRequest = useSendFriendRequest();
+  const acceptRequest = useAcceptFriendRequest();
   const unblockUser = useUnblockUser();
   const scrollOffsetY = useSharedValue(0);
 
@@ -67,6 +74,16 @@ export default function FriendSearchScreen() {
     }
   };
 
+  const handleAcceptRequest = async (requestId: string, userId: string) => {
+    try {
+      await acceptRequest.mutateAsync(requestId);
+      setAcceptedUserIds((prev) => new Set(prev).add(userId));
+      showToast("친구 요청을 수락했습니다.");
+    } catch {
+      showToast("요청 수락에 실패했습니다.");
+    }
+  };
+
   const handleUnblock = async (userId: string) => {
     setUnblockedIds((prev) => new Set(prev).add(userId));
     try {
@@ -86,6 +103,9 @@ export default function FriendSearchScreen() {
     .map((u) => ({
       ...u,
       hasSentRequest: u.hasSentRequest || sentRequestIds.has(u.userId),
+      hasReceivedRequest:
+        u.hasReceivedRequest && !acceptedUserIds.has(u.userId),
+      isFriend: u.isFriend || acceptedUserIds.has(u.userId),
       isBlocked: u.isBlocked && !unblockedIds.has(u.userId),
     }))
     .sort((a, b) => a.tag.localeCompare(b.tag));
@@ -97,6 +117,9 @@ export default function FriendSearchScreen() {
     <SearchResultItem
       user={item}
       onSendRequest={handleSendRequest}
+      onAcceptRequest={(requestId) =>
+        handleAcceptRequest(requestId, item.userId)
+      }
       onUnblock={handleUnblock}
     />
   );

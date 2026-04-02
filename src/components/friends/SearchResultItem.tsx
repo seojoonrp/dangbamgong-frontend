@@ -11,12 +11,14 @@ import {
 interface Props {
   user: UserSearchItem;
   onSendRequest: (userId: string) => void;
+  onAcceptRequest: (requestId: string) => void;
   onUnblock: (userId: string) => void;
 }
 
 export default function SearchResultItem({
   user,
   onSendRequest,
+  onAcceptRequest,
   onUnblock,
 }: Props) {
   const swipeableRef = useRef<SwipeableMethods>(null);
@@ -69,6 +71,27 @@ export default function SearchResultItem({
         <View style={[styles.statusBtn, styles.friendStatusBtn]}>
           <Text style={styles.friendStatusText}>친구</Text>
         </View>
+      </SwipeableCard>
+    );
+  }
+
+  if (user.hasReceivedRequest && user.receivedRequestId) {
+    return (
+      <SwipeableCard
+        ref={swipeableRef}
+        renderRightActions={() => <View />}
+        innerStyle={styles.innerContent}
+      >
+        <View style={styles.info}>
+          <Text style={styles.nickname}>{user.nickname}</Text>
+          <Text style={styles.tag}>#{user.tag}</Text>
+        </View>
+        <Pressable
+          style={styles.requestBtn}
+          onPress={() => onAcceptRequest(user.receivedRequestId!)}
+        >
+          <Text style={styles.requestText}>요청 수락</Text>
+        </Pressable>
       </SwipeableCard>
     );
   }

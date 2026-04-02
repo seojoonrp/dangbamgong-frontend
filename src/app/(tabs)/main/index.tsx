@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { View, Text, StyleSheet, Pressable, Alert } from "react-native";
+import * as SecureStore from "expo-secure-store";
+import TutorialModal, {
+  TUTORIAL_KEY,
+} from "../../../components/main/TutorialModal";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -47,6 +51,13 @@ export default function MainScreen() {
   const [showAddCard, setShowAddCard] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+
+  useEffect(() => {
+    SecureStore.getItemAsync(TUTORIAL_KEY).then((val) => {
+      if (!val) setShowTutorial(true);
+    });
+  }, []);
 
   const startVoid = useStartVoid();
   const endVoidMutation = useEndVoid();
@@ -253,6 +264,18 @@ export default function MainScreen() {
       {/* 활동 추가 카드 */}
       {showAddCard && <AddActivityCard onClose={() => setShowAddCard(false)} />}
 
+      {/* 튜토리얼 모달 */}
+      <TutorialModal
+        visible={showTutorial}
+        onComplete={() => setShowTutorial(false)}
+      />
+
+      {/* 튜토리얼 디버그 버튼 */}
+      {/* <Pressable
+        style={styles.debugButton}
+        onPress={() => setShowTutorial(true)}
+      /> */}
+
       {/* 알림 Drawer */}
       <NotificationDrawer
         visible={showNotifications}
@@ -318,5 +341,17 @@ const styles = StyleSheet.create({
     height: 7,
     borderRadius: 4,
     backgroundColor: Colors.white,
+  },
+  debugButton: {
+    position: "absolute",
+    top: 100,
+    left: 20,
+    width: 32,
+    height: 32,
+    borderColor: Colors.point.coral,
+    borderWidth: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
   },
 });

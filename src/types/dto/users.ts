@@ -45,6 +45,8 @@ export interface UserSearchItem {
   isBlocked: boolean;
   isFriend: boolean;
   hasSentRequest: boolean;
+  hasReceivedRequest: boolean;
+  receivedRequestId?: string;
 }
 
 export interface UserSearchResponse {

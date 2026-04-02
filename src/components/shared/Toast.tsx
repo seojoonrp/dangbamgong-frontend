@@ -71,8 +71,8 @@ const styles = StyleSheet.create({
   container: {
     position: "absolute",
     bottom: Layout.bottomTabHeight + 12,
-    left: 36,
-    right: 36,
+    left: 12,
+    right: 12,
     backgroundColor: Colors.black.dark,
     borderWidth: 1,
     borderColor: Colors.point.coral,

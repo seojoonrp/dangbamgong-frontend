@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   View,
   Text,
@@ -21,12 +22,14 @@ import PushIcon from "../../../../assets/icons/settings/push.svg";
 import BlockIcon from "../../../../assets/icons/settings/block.svg";
 import StatDetailIcon from "../../../../assets/icons/settings/stat-detail.svg";
 import VersionIcon from "../../../../assets/icons/settings/version.svg";
+import WhatIsVoidIcon from "../../../../assets/icons/settings/what-is-void.svg";
 import TermsIcon from "../../../../assets/icons/settings/terms.svg";
 import CallIcon from "../../../../assets/icons/settings/call.svg";
 import LogoutIcon from "../../../../assets/icons/settings/logout.svg";
 import WithdrawIcon from "../../../../assets/icons/settings/withdraw.svg";
 import ChevronIcon from "../../../../assets/icons/shared/chevron.svg";
 import InstaIcon from "../../../../assets/icons/settings/instagram.svg";
+import TutorialModal from "../../../components/main/TutorialModal";
 
 type SvgIcon = React.FC<{ color: string; width: number; height: number }>;
 
@@ -53,23 +56,6 @@ const accountItems: MenuItem[] = [
 
 const TERMS_URL =
   "https://pushy-billboard-69f.notion.site/319feaa4f65880828bffeb89b933d543";
-
-const appItems: MenuItem[] = [
-  { label: "앱 버전", icon: VersionIcon, rightText: "v1.0.0" },
-  {
-    label: "서비스 이용 약관",
-    icon: TermsIcon,
-    onPress: () => {
-      WebBrowser.openBrowserAsync(TERMS_URL);
-    },
-  },
-  {
-    label: "문의하기",
-    icon: CallIcon,
-    rightIcon: InstaIcon,
-    rightText: "dangbamgong_official",
-  },
-];
 
 type SectionConfig = {
   title: string;
@@ -133,6 +119,29 @@ function MenuSection({ title, items, indicatorColor }: SectionConfig) {
 
 export default function SettingsScreen() {
   const { logout } = useAuth();
+  const [showTutorial, setShowTutorial] = useState(false);
+
+  const appItems: MenuItem[] = [
+    { label: "앱 버전", icon: VersionIcon, rightText: "v1.0.0" },
+    {
+      label: "공백이 뭔가요?",
+      icon: WhatIsVoidIcon,
+      onPress: () => setShowTutorial(true),
+    },
+    {
+      label: "서비스 이용 약관",
+      icon: TermsIcon,
+      onPress: () => {
+        WebBrowser.openBrowserAsync(TERMS_URL);
+      },
+    },
+    {
+      label: "문의하기",
+      icon: CallIcon,
+      rightIcon: InstaIcon,
+      rightText: "dangbamgong_official",
+    },
+  ];
 
   const handleLogout = () => {
     Alert.alert("로그아웃", "로그아웃 하시겠습니까?", [
@@ -229,6 +238,11 @@ export default function SettingsScreen() {
           <MenuSection key={section.title} {...section} />
         ))}
       </ScrollView>
+      <TutorialModal
+        visible={showTutorial}
+        onComplete={() => setShowTutorial(false)}
+        initialStep={1}
+      />
     </SafeAreaView>
   );
 }
@@ -255,12 +269,12 @@ const styles = StyleSheet.create({
     paddingLeft: 24,
   },
   itemsContainer: {
-    paddingLeft: 12,
+    paddingLeft: 14,
     gap: 3.2,
   },
   sideIndicator: {
     position: "absolute",
-    left: -20,
+    left: -19.2,
     top: 0,
     bottom: 0,
     width: 22.2,

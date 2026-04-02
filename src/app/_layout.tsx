@@ -6,6 +6,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { Platform, PlatformIOSStatic, StyleSheet, Text, TextInput, useWindowDimensions, View } from "react-native";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { PortalProvider } from "@gorhom/portal";
 import { queryClient } from "../lib/queryClient";
 import { AuthProvider } from "../lib/AuthContext";
 import { setupReactQueryFocus } from "../lib/reactQueryFocus";
@@ -76,12 +77,14 @@ export default function RootLayout() {
       <View style={isIpadLandscape ? styles.ipadContainer : { flex: 1 }}>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <StatusBar style="light" />
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="index" />
-              <Stack.Screen name="(auth)" />
-              <Stack.Screen name="(tabs)" />
-            </Stack>
+            <PortalProvider>
+              <StatusBar style="light" />
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="(tabs)" />
+              </Stack>
+            </PortalProvider>
           </AuthProvider>
         </QueryClientProvider>
       </View>
