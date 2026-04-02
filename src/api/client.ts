@@ -13,8 +13,11 @@ export const tokenStorage = {
 
 export const client = axios.create({
   // Development build는 env를 못 박아넣음...
-  baseURL: "http://172.30.1.28:8001/api/v1", // 데스크탑
+  // baseURL: "http://172.30.1.28:8001/api/v1", // 데스크탑
   // baseURL: "http://10.150.196.28:8000/api/v1", // 노트북
+
+  // Production
+  baseURL: "https://dbg.bapddang.com/api/v1",
 
   timeout: 10000,
   headers: { "Content-Type": "application/json" },
