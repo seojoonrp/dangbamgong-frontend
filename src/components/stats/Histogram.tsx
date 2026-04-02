@@ -72,6 +72,10 @@ export default function Histogram({ buckets, isToday }: Props) {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const scrollRef = useRef<ScrollView>(null);
 
+  useEffect(() => {
+    setSelectedIndex(null);
+  }, [buckets]);
+
   const maxCount = Math.max(...buckets.map((b) => b.count), 1);
 
   const now = new Date();
@@ -98,21 +102,30 @@ export default function Histogram({ buckets, isToday }: Props) {
       >
         <View style={styles.barsContainer}>
           {/* 선택된 바 툴팁 */}
-          {selectedIndex !== null && (
-            <View
-              style={[
-                styles.tooltip,
-                {
-                  left: selectedIndex * BAR_TOTAL - 30,
-                },
-              ]}
-            >
-              <Text style={styles.tooltipText}>
-                {renderBucketLabel(selectedIndex)} |{" "}
-                {buckets[selectedIndex]?.count ?? 0}명
-              </Text>
-            </View>
-          )}
+          {selectedIndex !== null &&
+            (() => {
+              const count = buckets[selectedIndex]?.count ?? 0;
+              const barHeight =
+                count > 0 ? (count / maxCount) * MAX_BAR_HEIGHT : 0;
+              const barTop = MAX_BAR_HEIGHT - barHeight;
+              const isShort = barHeight <= MAX_BAR_HEIGHT * 0.75;
+              const halfWidth = 37 + (String(count).length - 1) * 3.5;
+              const tooltipLeft =
+                selectedIndex * BAR_TOTAL + BAR_WIDTH / 2 - halfWidth;
+              const tooltipTop = isShort ? barTop - 26 : barTop + 5;
+              return (
+                <View
+                  style={[
+                    styles.tooltip,
+                    { left: tooltipLeft, top: tooltipTop },
+                  ]}
+                >
+                  <Text style={styles.tooltipText}>
+                    {renderBucketLabel(selectedIndex)} | {count}명
+                  </Text>
+                </View>
+              );
+            })()}
 
           {/* 배경 격자선 */}
           {Array.from({ length: GRID_LINE_COUNT }, (_, i) => (
@@ -166,6 +179,7 @@ export default function Histogram({ buckets, isToday }: Props) {
                   onPress={() =>
                     setSelectedIndex(selectedIndex === i ? null : i)
                   }
+                  disabled={bucket.count === 0}
                   style={styles.barWrapper}
                 >
                   <AnimatedBar
@@ -173,6 +187,14 @@ export default function Histogram({ buckets, isToday }: Props) {
                     isMine={bucket.isMine}
                     index={i}
                   />
+                  {selectedIndex === i && (
+                    <View
+                      style={[
+                        StyleSheet.absoluteFillObject,
+                        { backgroundColor: "rgba(0,0,0,0.1)" },
+                      ]}
+                    />
+                  )}
                 </Pressable>
               );
             })}
@@ -191,7 +213,6 @@ export default function Histogram({ buckets, isToday }: Props) {
           </View>
         </View>
       </ScrollView>
-
     </View>
   );
 }
@@ -232,21 +253,24 @@ const styles = StyleSheet.create({
   },
   tooltip: {
     position: "absolute",
-    top: -24,
     backgroundColor: Colors.black.light,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 6,
+    borderColor: Colors.white,
+    borderWidth: 1,
+    borderRadius: 9,
     zIndex: 10,
   },
   tooltipText: {
     color: Colors.white,
     fontSize: 11,
+    fontFamily: "A2Z-Regular",
+    marginTop: -1,
   },
   nowLabel: {
     position: "absolute",
     color: Colors.point.coral,
-    top: -10,
+    top: -14,
     fontSize: 10,
     fontFamily: "A2Z-Regular",
     zIndex: 10,

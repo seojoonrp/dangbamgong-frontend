@@ -116,10 +116,10 @@ export default function NicknameScreen() {
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
+    backgroundColor: Colors.black.dark,
   },
   container: {
     flex: 1,
-    backgroundColor: Colors.black.dark,
     paddingHorizontal: 40,
     justifyContent: "center",
     paddingBottom: 20,

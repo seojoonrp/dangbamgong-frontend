@@ -222,7 +222,7 @@ export default function FriendsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <TabHeader
         icon={FriendsIcon}
         title="Friends"

@@ -188,7 +188,7 @@ export default function MainScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <TabHeader
         icon={MainIcon}
         title="당밤공"

@@ -119,7 +119,11 @@ export default function NotificationDrawer({ visible, onClose }: Props) {
             {formatRelativeTime(item.createdAt)}
           </Text>
         </View>
-        <Text style={styles.notifBody}>{item.body}</Text>
+        <Text style={styles.notifBody}>
+          {item.title !== "당밤공 알림"
+            ? `${item.title}님이 ${item.body}`
+            : item.body}
+        </Text>
       </Pressable>
     );
   };

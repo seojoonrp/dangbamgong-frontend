@@ -3,6 +3,7 @@ import { Tabs } from "expo-router";
 
 import BottomTab from "../../components/navigation/BottomTab";
 import { requestPushPermissionAndRegister } from "../../lib/pushNotifications";
+import { Layout } from "../../constants/layout";
 
 export default function TabsLayout() {
   useEffect(() => {
@@ -14,7 +15,7 @@ export default function TabsLayout() {
       tabBar={(props) => <BottomTab {...props} />}
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { position: "absolute" },
+        tabBarStyle: { position: "absolute", height: Layout.bottomTabHeight },
       }}
     >
       <Tabs.Screen name="main" options={{ title: "메인" }} />
