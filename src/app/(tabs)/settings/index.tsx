@@ -14,8 +14,11 @@ import { Colors } from "../../../constants/colors";
 import TabHeader from "../../../components/navigation/TabHeader";
 import SettingsIcon from "../../../../assets/icons/header/settings.svg";
 import { Layout } from "../../../constants/layout";
+import * as Device from "expo-device";
+import * as Notifications from "expo-notifications";
 import { useAuth } from "../../../lib/AuthContext";
 import { withdraw } from "../../../api/services/auth";
+import { deleteDeviceToken } from "../../../api/services/devices";
 
 import ProfileIcon from "../../../../assets/icons/settings/profile.svg";
 import PushIcon from "../../../../assets/icons/settings/push.svg";
@@ -177,6 +180,16 @@ export default function SettingsScreen() {
                   style: "destructive",
                   onPress: async () => {
                     try {
+                      // 디바이스 토큰 먼저 삭제 (인증 유효한 상태에서)
+                      try {
+                        if (Device.isDevice) {
+                          const pushToken =
+                            await Notifications.getExpoPushTokenAsync();
+                          await deleteDeviceToken(pushToken.data);
+                        }
+                      } catch {
+                        // 디바이스 토큰 삭제 실패해도 탈퇴 진행
+                      }
                       await withdraw();
                       await logout();
                       router.replace("/(auth)/landing");
